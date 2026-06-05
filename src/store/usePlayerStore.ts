@@ -229,7 +229,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => {
       const modeChanged = get().isVideoMode !== isVideo;
       if ((!isSameTrack || modeChanged) && isSingleTrackPlay) {
         const isVideoOnly = isVideo || get().isVideoMode;
-        fetch(`${API_BASE}/vibe/${track.id}`)
+        fetch(`${API_BASE}/vibe/${track.id}?title=${encodeURIComponent(track.title)}&artist=${encodeURIComponent(track.artist)}`)
           .then((res) => {
             if (res.ok) return res.json();
             throw new Error('Vibe fetch failed');
