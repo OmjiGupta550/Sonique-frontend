@@ -227,9 +227,9 @@ export const usePlayerStore = create<PlayerState>((set, get) => {
 
       // Automatically create a vibe list of at least 50 matching vibe tracks in the background
       const modeChanged = get().isVideoMode !== isVideo;
-      if (!isSameTrack || modeChanged) {
+      if ((!isSameTrack || modeChanged) && isSingleTrackPlay) {
         const isVideoOnly = isVideo || get().isVideoMode;
-        fetch(`${API_BASE}/vibe/${track.id}${isVideoOnly ? '?video_only=true' : ''}`)
+        fetch(`${API_BASE}/vibe/${track.id}`)
           .then((res) => {
             if (res.ok) return res.json();
             throw new Error('Vibe fetch failed');
