@@ -38,10 +38,11 @@ export function FullscreenPlayer() {
     toggleShuffle,
     toggleRepeat,
     setShowFullscreenPlayer,
-    isVideoMode
+    isVideoMode,
+    setVideoMode
   } = usePlayerStore();
 
-  const { toggleLike, isLiked, accentColor, setAccentColor, setShowSleepTimerModal, playVideo, activeVideoId } = useUIStore();
+  const { toggleLike, isLiked, accentColor, setAccentColor, setShowSleepTimerModal, playVideo, closeVideo, activeVideoId } = useUIStore();
   const [activeTab, setActiveTab] = useState<'player' | 'lyrics' | 'queue'>('player');
 
   const activeQueue = isShuffle ? shuffledQueue : queue;
@@ -223,15 +224,18 @@ export function FullscreenPlayer() {
                 {(isVideoMode || currentTrack.hasVideo) && (
                   <button
                     onClick={() => {
-                      if (!isVideoMode) {
-                        playTrack(currentTrack, undefined, true);
+                      if (isVideoMode) {
+                        setVideoMode(false);
+                        closeVideo();
+                      } else {
+                        setVideoMode(true);
+                        playVideo(currentTrack.id);
                       }
-                      playVideo(currentTrack.id);
                     }}
                     className={`p-3 rounded-full hover:bg-white/5 transition ${
                       isVideoMode ? 'text-red-400 bg-red-500/10 animate-pulse' : 'text-zinc-400 hover:text-red-400'
                     }`}
-                    title={isVideoMode ? "Watch Video" : "Watch Video"}
+                    title={isVideoMode ? "Watch Audio Only" : "Watch Video"}
                   >
                     <Tv className="w-6 h-6" />
                   </button>

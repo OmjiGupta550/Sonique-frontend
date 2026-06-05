@@ -34,10 +34,11 @@ export function MiniPlayer() {
     setShowFullscreenPlayer,
     setShowQueueList,
     showQueueList,
-    isVideoMode
+    isVideoMode,
+    setVideoMode
   } = usePlayerStore();
 
-  const { toggleLike, isLiked, accentColor, playVideo } = useUIStore();
+  const { toggleLike, isLiked, accentColor, playVideo, closeVideo, activeVideoId } = useUIStore();
 
   const activeQueue = isShuffle ? shuffledQueue : queue;
   const track = activeQueue[currentIndex];
@@ -214,17 +215,20 @@ export function MiniPlayer() {
           {track.hasVideo && (
             <button
               onClick={() => {
-                if (!isVideoMode) {
-                  playTrack(track, undefined, true);
+                if (isVideoMode) {
+                  setVideoMode(false);
+                  closeVideo();
+                } else {
+                  setVideoMode(true);
+                  playVideo(track.id);
                 }
-                playVideo(track.id);
               }}
               className={`transition shrink-0 mr-1 p-1 rounded-full ${
                 isVideoMode 
                   ? 'text-red-400 bg-red-500/10 border border-red-500/20 shadow-inner animate-pulse hover:scale-105' 
                   : 'text-zinc-400 hover:text-red-400'
               }`}
-              title={isVideoMode ? "Watch Video" : "Watch Video"}
+              title={isVideoMode ? "Watch Audio Only" : "Watch Video"}
             >
               <Tv className="w-5 h-5" />
             </button>
