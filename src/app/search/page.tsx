@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useDebounce } from '../../hooks/useDebounce';
 import { searchSaavnSongs, SaavnTrack } from '../../lib/saavn';
 import { TrackRow } from '../../components/track/TrackRow';
 import { PlayerTrack } from '../../store/usePlayerStore';
@@ -18,48 +17,44 @@ function SearchPageContent() {
   const queryParam = searchParams.get('q') || '';
 
   const [inputVal, setInputVal] = useState(queryParam);
-  const debouncedQuery = useDebounce(inputVal, 400);
-
   const [tracks, setTracks] = useState<SaavnTrack[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const { accentColor } = useUIStore();
 
-  // Sync state if query URL updates
+  const performSearch = async (query: string) => {
+    setLoading(true);
+    try {
+      const tracksRes = await searchSaavnSongs(query);
+      setTracks(tracksRes);
+      trackGenericAction('search_query', { query });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sync input value & run search when URL queryParam updates
   useEffect(() => {
     setInputVal(queryParam);
+    if (queryParam.trim()) {
+      performSearch(queryParam);
+    } else {
+      setTracks([]);
+    }
   }, [queryParam]);
 
-  // Execute Search query updates
-  useEffect(() => {
-    if (!debouncedQuery.trim()) {
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = inputVal.trim();
+    if (!query) {
       setTracks([]);
-      setLoading(false);
-      // Clean query parameter from URL if input is empty
-      if (queryParam) {
-        router.replace('/search');
-      }
+      router.replace('/search');
       return;
     }
-
-    // Set search parameter in URL
-    router.replace(`/search?q=${encodeURIComponent(debouncedQuery)}`);
-    setLoading(true);
-
-    async function executeSearch() {
-      try {
-        const tracksRes = await searchSaavnSongs(debouncedQuery);
-        setTracks(tracksRes);
-        trackGenericAction('search_query', { query: debouncedQuery });
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    executeSearch();
-  }, [debouncedQuery, router, queryParam]);
+    router.replace(`/search?q=${encodeURIComponent(query)}`);
+  };
 
   const convertToPlayerTrack = (t: SaavnTrack): PlayerTrack => ({
     id: t.id,
@@ -78,7 +73,7 @@ function SearchPageContent() {
     <div className="space-y-6 pb-8 select-none">
       
       {/* Search Input Header - visible on all screen sizes */}
-      <div className="relative w-full max-w-2xl mx-auto mb-8">
+      <form onSubmit={handleSearchSubmit} className="relative w-full max-w-2xl mx-auto mb-8">
         <input
           type="text"
           value={inputVal}
@@ -88,9 +83,9 @@ function SearchPageContent() {
           autoFocus
         />
         <Search className="w-5 h-5 text-zinc-400 absolute left-4 top-3.5" />
-      </div>
+      </form>
 
-      {!debouncedQuery.trim() ? (
+      {!queryParam.trim() ? (
         // Search suggestions or guides
         <div className="flex flex-col items-center justify-center py-20 text-zinc-500 space-y-4">
           <Search className="w-16 h-16 opacity-30 stroke-1" />
@@ -160,7 +155,7 @@ function SearchPageContent() {
                 (activeTab === 'video' && videoTracks.length === 0) ||
                 (activeTab === 'all' && audioTracks.length === 0 && videoTracks.length === 0)) && (
                 <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
-                  <p className="text-sm italic">No matching results found for "{debouncedQuery}"</p>
+                  <p className="text-sm italic">No matching results found for "{queryParam}"</p>
                 </div>
               )}
 
