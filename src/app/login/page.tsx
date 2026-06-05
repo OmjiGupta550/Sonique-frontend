@@ -85,10 +85,10 @@ export default function LoginPage() {
         {/* App Branding */}
         <div className="flex flex-col items-center gap-2 text-center">
           <div 
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg animate-pulse"
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-lg animate-pulse font-black text-xl select-none"
             style={{ backgroundColor: accentColor }}
           >
-            <Disc className="w-7 h-7 animate-spin-slow" />
+            S
           </div>
           <h2 className="text-2xl font-black tracking-tight mt-2">
             {isSignUp ? 'Create your account' : 'Sign in to Sonique'}
