@@ -195,7 +195,8 @@ export const usePlayerStore = create<PlayerState>((set, get) => {
         set({ shuffledQueue: shuffled, currentIndex: 0 });
       }
 
-      currentAudio.src = track.sourceUrl;
+      const streamUrl = `${API_BASE}/api/stream/${track.id}?redirect=true&has_video=${shouldPlayVideo}&title=${encodeURIComponent(track.title)}&artist=${encodeURIComponent(track.artist)}`;
+      currentAudio.src = streamUrl;
       currentAudio.load();
       if (preservedTime > 0) {
         currentAudio.currentTime = preservedTime;
@@ -519,14 +520,40 @@ export const usePlayerStore = create<PlayerState>((set, get) => {
       set({ isLyricsLoading: true, lyrics: [], currentLyricIndex: -1 });
 
       try {
-        const data = await fetchLyrics(track.title, track.artist, track.duration);
-        if (data) {
-          set({ lyrics: data.parsedLines, isLyricsLoading: false });
+        let lyricsLines: LyricLine[] | null = null;
+        const shouldPlayVideo = get().isVideoMode;
+
+        if (!shouldPlayVideo) {
+          try {
+            const res = await fetch(`${API_BASE}/api/lyrics?videoId=${track.id}&title=${encodeURIComponent(track.title)}&artist=${encodeURIComponent(track.artist)}&has_video=false`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data.lyrics) {
+                const lines = data.lyrics.split('\n');
+                lyricsLines = lines.map((line: string, index: number) => ({
+                  time: index * 4,
+                  text: line.trim()
+                })).filter((l: any) => l.text.length > 0);
+              }
+            }
+          } catch (err) {
+            console.error('Failed to fetch JioSaavn lyrics:', err);
+          }
+        }
+
+        if (lyricsLines) {
+          set({ lyrics: lyricsLines, isLyricsLoading: false });
         } else {
-          set({
-            lyrics: [{ time: 0, text: 'Lyrics not available' }],
-            isLyricsLoading: false,
-          });
+          // Fall back to LRCLIB (YouTube lyrics)
+          const data = await fetchLyrics(track.title, track.artist, track.duration);
+          if (data) {
+            set({ lyrics: data.parsedLines, isLyricsLoading: false });
+          } else {
+            set({
+              lyrics: [{ time: 0, text: 'Lyrics not available' }],
+              isLyricsLoading: false,
+            });
+          }
         }
       } catch (err) {
         console.error(err);
