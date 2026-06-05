@@ -83,34 +83,63 @@ export function MiniPlayer() {
       </div>
 
       <div className="flex items-center justify-between px-4 h-[77px]">
-        {/* Left - Artwork Cover (Always active, 100% bug-free) */}
+        {/* Left - Artwork Cover or Widescreen Video Corner Preview */}
         <div className="flex items-center gap-3 w-1/3 min-w-[150px]">
-          <div 
-            className="w-14 h-14 rounded-lg overflow-hidden border border-white/5 shadow-md cursor-pointer shrink-0 relative group"
-            onClick={togglePlay}
-          >
-            <img 
-              src={coverSrc} 
-              alt={track.title} 
-              className="w-full h-full object-cover transition duration-300 group-hover:scale-105" 
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                if (e.currentTarget.src !== `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg` && track.id && track.id.length === 11) {
-                  e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg`;
-                } else {
-                  e.currentTarget.src = "/placeholder.png";
-                }
-              }}
-            />
-            {/* Hover overlay play/pause indicator */}
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-              {isPlaying ? (
-                <Pause className="w-5 h-5 text-white" />
-              ) : (
-                <Play className="w-5 h-5 text-white translate-x-0.5" />
-              )}
+          {isVideoMode && !showFullscreenPlayer && !activeVideoId ? (
+            /* Widescreen YouTube Video Corner Preview */
+            <div 
+              className="w-24 h-14 rounded-lg bg-zinc-950 overflow-hidden shrink-0 relative border border-white/10 shadow-md group cursor-pointer"
+            >
+              <div 
+                id="youtube-player-placeholder" 
+                className="w-full h-full bg-transparent" 
+              />
+              {/* Corner maximize hover overlay */}
+              <div 
+                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center z-20 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowFullscreenPlayer(true);
+                }}
+                title="Fullscreen Video"
+              >
+                <Maximize2 className="w-4 h-4 text-white" />
+              </div>
+              {/* Click Overlay to toggle play/pause */}
+              <div 
+                className="absolute inset-0 z-10 cursor-pointer"
+                onClick={togglePlay}
+              />
             </div>
-          </div>
+          ) : (
+            /* Standard Square Album Art Cover image */
+            <div 
+              className="w-14 h-14 rounded-lg overflow-hidden border border-white/5 shadow-md cursor-pointer shrink-0 relative group"
+              onClick={() => setShowFullscreenPlayer(true)}
+            >
+              <img 
+                src={coverSrc} 
+                alt={track.title} 
+                className="w-full h-full object-cover transition duration-300 group-hover:scale-105" 
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  if (e.currentTarget.src !== `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg` && track.id && track.id.length === 11) {
+                    e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg`;
+                  } else {
+                    e.currentTarget.src = "/placeholder.png";
+                  }
+                }}
+              />
+              {/* Hover overlay play/pause indicator */}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                {isPlaying ? (
+                  <Pause className="w-5 h-5 text-white" />
+                ) : (
+                  <Play className="w-5 h-5 text-white translate-x-0.5" />
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="overflow-hidden">
             <h4 

@@ -141,18 +141,30 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
             iframe.style.setProperty("width", `${baseSize}px`, "important");
             iframe.style.setProperty("height", `${baseSize}px`, "important");
+            iframe.style.setProperty("max-width", "none", "important");
+            iframe.style.setProperty("max-height", "none", "important");
             iframe.style.setProperty("transform", `scale(${scale})`, "important");
             iframe.style.setProperty("transform-origin", "top left", "important");
             iframe.style.setProperty("margin-top", `${offsetTop}px`, "important");
             iframe.style.setProperty("margin-left", "0px", "important");
+            iframe.style.setProperty("display", "block", "important");
+            iframe.style.setProperty("position", "absolute", "important");
+            iframe.style.setProperty("top", "0", "important");
+            iframe.style.setProperty("left", "0", "important");
           } else {
             // Restore standard fullscreen / modal size
             iframe.style.setProperty("width", "100%", "important");
             iframe.style.setProperty("height", "100%", "important");
+            iframe.style.setProperty("max-width", "none", "important");
+            iframe.style.setProperty("max-height", "none", "important");
             iframe.style.setProperty("transform", "none", "important");
             iframe.style.setProperty("transform-origin", "top left", "important");
             iframe.style.setProperty("margin-top", "0px", "important");
             iframe.style.setProperty("margin-left", "0px", "important");
+            iframe.style.setProperty("display", "block", "important");
+            iframe.style.setProperty("position", "absolute", "important");
+            iframe.style.setProperty("top", "0", "important");
+            iframe.style.setProperty("left", "0", "important");
           }
         }
       } else {
@@ -172,9 +184,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         if (iframe) {
           iframe.style.setProperty("width", "100%", "important");
           iframe.style.setProperty("height", "100%", "important");
+          iframe.style.setProperty("max-width", "none", "important");
+          iframe.style.setProperty("max-height", "none", "important");
           iframe.style.setProperty("transform", "none", "important");
           iframe.style.setProperty("margin-top", "0px", "important");
           iframe.style.setProperty("margin-left", "0px", "important");
+          iframe.style.setProperty("display", "block", "important");
+          iframe.style.setProperty("position", "absolute", "important");
+          iframe.style.setProperty("top", "0", "important");
+          iframe.style.setProperty("left", "0", "important");
         }
       }
 
