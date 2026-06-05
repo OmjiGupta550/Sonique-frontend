@@ -39,6 +39,7 @@ export function MiniPlayer() {
   } = usePlayerStore();
 
   const { toggleLike, isLiked, accentColor, playVideo, closeVideo, activeVideoId } = useUIStore();
+  const [showRemaining, setShowRemaining] = React.useState(false);
 
   const activeQueue = isShuffle ? shuffledQueue : queue;
   const track = activeQueue[currentIndex];
@@ -70,33 +71,9 @@ export function MiniPlayer() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 h-20 bg-zinc-950/90 border-t border-white/5 backdrop-blur-2xl z-50 select-none">
-      {/* Progress Bar */}
-      <div 
-        className="w-full h-[3px] bg-zinc-800 cursor-pointer relative" 
-        onClick={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          seek(((e.clientX - rect.left) / rect.width) * duration);
-        }}
-      >
-        <div 
-          className="h-full transition-all duration-100" 
-          style={{ width: `${progress}%`, backgroundColor: accentColor }} 
-        />
-      </div>
-
-      {/* Time indicators (Elapsed / Remaining & Duration) */}
-      <div className="absolute top-[5px] left-0 right-0 px-4 flex justify-between text-[10px] font-bold text-zinc-500 pointer-events-none select-none">
-        <span>{formatTime(currentTime)}</span>
-        <div className="flex gap-1">
-          <span>-{formatTime(remainingTime)}</span>
-          <span>/</span>
-          <span>{formatTime(duration)}</span>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between px-4 h-[77px]">
+      <div className="flex items-center justify-between px-4 h-full">
         {/* Left - Artwork Cover or Widescreen Video Corner Preview */}
-        <div className="flex items-center gap-3 w-1/3 min-w-[150px]">
+        <div className="flex items-center gap-3 w-[30%] min-w-[180px]">
           {isVideoMode && !showFullscreenPlayer && !activeVideoId ? (
             /* Widescreen YouTube Video Corner Preview */
             <div 
@@ -169,61 +146,95 @@ export function MiniPlayer() {
         </div>
 
         {/* Center Controls */}
-        <div className="flex items-center gap-4 md:gap-6 w-1/3 justify-center">
-          <button 
-            onClick={toggleShuffle}
-            className={`transition ${isShuffle ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
-            style={{ color: isShuffle ? accentColor : undefined }}
-            title="Shuffle"
-          >
-            <Shuffle className="w-4 h-4" />
-          </button>
+        <div className="flex flex-col items-center justify-center gap-1.5 w-[40%] max-w-[600px] flex-1">
+          {/* Playback Buttons Row */}
+          <div className="flex items-center gap-4 md:gap-6">
+            <button 
+              onClick={toggleShuffle}
+              className={`transition ${isShuffle ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
+              style={{ color: isShuffle ? accentColor : undefined }}
+              title="Shuffle"
+            >
+              <Shuffle className="w-4 h-4" />
+            </button>
 
-          <button 
-            onClick={previous}
-            className="text-zinc-400 hover:text-white transition"
-            title="Previous"
-          >
-            <SkipBack className="w-5 h-5 fill-zinc-400 hover:fill-white" />
-          </button>
+            <button 
+              onClick={previous}
+              className="text-zinc-400 hover:text-white transition"
+              title="Previous"
+            >
+              <SkipBack className="w-5 h-5 fill-zinc-400 hover:fill-white" />
+            </button>
 
-          <button 
-            onClick={togglePlay} 
-            className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-950 transition hover:scale-105 active:scale-95 shadow-md"
-            style={{ backgroundColor: accentColor }}
-            title={isPlaying ? 'Pause' : 'Play'}
-          >
-            {isPlaying ? <Pause className="w-5 h-5 fill-zinc-950" /> : <Play className="w-5 h-5 fill-zinc-950 translate-x-0.5" />}
-          </button>
+            <button 
+              onClick={togglePlay} 
+              className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-950 transition hover:scale-105 active:scale-95 shadow-md shrink-0"
+              style={{ backgroundColor: accentColor }}
+              title={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? <Pause className="w-4.5 h-4.5 fill-zinc-950" /> : <Play className="w-4.5 h-4.5 fill-zinc-950 translate-x-0.5" />}
+            </button>
 
-          <button 
-            onClick={next}
-            className="text-zinc-400 hover:text-white transition"
-            title="Next"
-          >
-            <SkipForward className="w-5 h-5 fill-zinc-400 hover:fill-white" />
-          </button>
+            <button 
+              onClick={next}
+              className="text-zinc-400 hover:text-white transition"
+              title="Next"
+            >
+              <SkipForward className="w-5 h-5 fill-zinc-400 hover:fill-white" />
+            </button>
 
-          <button 
-            onClick={toggleRepeat}
-            className={`relative transition ${repeatMode !== 'none' ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
-            style={{ color: repeatMode !== 'none' ? accentColor : undefined }}
-            title={`Repeat: ${repeatMode}`}
-          >
-            <Repeat className="w-4 h-4" />
-            {repeatMode === 'one' && (
-              <span 
-                className="absolute -top-1 -right-1 text-[8px] font-bold rounded-full w-2.5 h-2.5 flex items-center justify-center text-zinc-950"
-                style={{ backgroundColor: accentColor }}
-              >
-                1
-              </span>
-            )}
-          </button>
+            <button 
+              onClick={toggleRepeat}
+              className={`relative transition ${repeatMode !== 'none' ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
+              style={{ color: repeatMode !== 'none' ? accentColor : undefined }}
+              title={`Repeat: ${repeatMode}`}
+            >
+              <Repeat className="w-4 h-4" />
+              {repeatMode === 'one' && (
+                <span 
+                  className="absolute -top-1 -right-1 text-[8px] font-bold rounded-full w-2.5 h-2.5 flex items-center justify-center text-zinc-950"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  1
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Progress Bar Row */}
+          <div className="flex items-center gap-2.5 w-full text-zinc-400 select-none">
+            <span className="w-10 text-right text-[11px] font-medium text-zinc-400/80">{formatTime(currentTime)}</span>
+            
+            <div 
+              className="flex-1 py-2 cursor-pointer relative group flex items-center" 
+              onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                seek(((e.clientX - rect.left) / rect.width) * duration);
+              }}
+            >
+              <div className="w-full h-1 bg-zinc-800 rounded-full group-hover:h-1.5 transition-all duration-150 relative overflow-visible">
+                <div 
+                  className="h-full rounded-full transition-all duration-100" 
+                  style={{ width: `${progress}%`, backgroundColor: accentColor }} 
+                />
+                <div 
+                  className="absolute w-3 h-3 rounded-full bg-white shadow opacity-0 group-hover:opacity-100 transition-opacity duration-150 -translate-x-1.5 top-1/2 -translate-y-1/2"
+                  style={{ left: `${progress}%` }}
+                />
+              </div>
+            </div>
+
+            <span 
+              className="w-10 text-left text-[11px] font-medium text-zinc-400/80 cursor-pointer hover:text-white transition"
+              onClick={() => setShowRemaining(!showRemaining)}
+            >
+              {showRemaining ? `-${formatTime(remainingTime)}` : formatTime(duration)}
+            </span>
+          </div>
         </div>
 
         {/* Right Controls */}
-        <div className="flex items-center gap-3 w-1/3 justify-end">
+        <div className="flex items-center gap-3 w-[30%] min-w-[180px] justify-end">
           <button 
             onClick={() => setShowQueueList(!showQueueList)}
             className={`transition shrink-0 ${showQueueList ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
