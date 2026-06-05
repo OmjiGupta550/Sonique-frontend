@@ -66,6 +66,8 @@ export function MiniPlayer() {
 
   const coverSrc = getCoverSrc(track);
 
+  const remainingTime = Math.max(0, duration - currentTime);
+
   return (
     <div className="fixed bottom-0 left-0 right-0 h-20 bg-zinc-950/90 border-t border-white/5 backdrop-blur-2xl z-50 select-none">
       {/* Progress Bar */}
@@ -80,6 +82,16 @@ export function MiniPlayer() {
           className="h-full transition-all duration-100" 
           style={{ width: `${progress}%`, backgroundColor: accentColor }} 
         />
+      </div>
+
+      {/* Time indicators (Elapsed / Remaining & Duration) */}
+      <div className="absolute top-[5px] left-0 right-0 px-4 flex justify-between text-[10px] font-bold text-zinc-500 pointer-events-none select-none">
+        <span>{formatTime(currentTime)}</span>
+        <div className="flex gap-1">
+          <span>-{formatTime(remainingTime)}</span>
+          <span>/</span>
+          <span>{formatTime(duration)}</span>
+        </div>
       </div>
 
       <div className="flex items-center justify-between px-4 h-[77px]">
