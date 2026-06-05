@@ -36,7 +36,7 @@ export async function searchSaavnSongs(query: string, limit = 50): Promise<Saavn
 
   try {
     const res = await fetch(`${API_ROOT}/api/search?q=${encodeURIComponent(query)}&limit=${limit}`, {
-      signal: AbortSignal.timeout(8000)
+      signal: AbortSignal.timeout(20000)
     });
     if (!res.ok) return [];
 
