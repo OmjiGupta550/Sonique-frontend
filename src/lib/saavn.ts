@@ -11,6 +11,7 @@ export interface SaavnTrack {
   coverUrl: string | null;
   duration: number;
   sourceUrl: string;
+  hasVideo?: boolean;
 }
 
 export interface SaavnPlaylistDetails {
@@ -48,7 +49,8 @@ export async function searchSaavnSongs(query: string, limit = 50): Promise<Saavn
       artist: s.artist,
       coverUrl: mapping[s.id] || s.thumbnail || null,
       duration: s.duration,
-      sourceUrl: `${API_ROOT}/api/stream/${s.id}?redirect=true`
+      sourceUrl: `${API_ROOT}/api/stream/${s.id}?redirect=true`,
+      hasVideo: s.hasVideo
     }));
   } catch (err) {
     console.error('Error searching YouTube Music API:', err);

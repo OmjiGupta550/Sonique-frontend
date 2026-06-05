@@ -10,7 +10,7 @@ import { useUIStore } from '../../store/useUIStore';
 import { Search } from 'lucide-react';
 import { trackGenericAction } from '../../lib/recommendations';
 
-type TabType = 'all' | 'songs';
+type TabType = 'all' | 'audio' | 'video';
 
 function SearchPageContent() {
   const searchParams = useSearchParams();
@@ -67,8 +67,12 @@ function SearchPageContent() {
     artist: t.artist,
     coverUrl: t.coverUrl,
     duration: t.duration,
-    sourceUrl: t.sourceUrl
+    sourceUrl: t.sourceUrl,
+    hasVideo: t.hasVideo
   });
+
+  const audioTracks = tracks.filter((t) => !t.hasVideo);
+  const videoTracks = tracks.filter((t) => t.hasVideo);
 
   return (
     <div className="space-y-6 pb-8 select-none">
@@ -101,7 +105,7 @@ function SearchPageContent() {
         <>
           {/* Result Tabs */}
           <div className="flex gap-2 border-b border-white/5 pb-2 text-sm font-semibold">
-            {(['all', 'songs'] as TabType[]).map((tab) => (
+            {(['all', 'audio', 'video'] as TabType[]).map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -127,20 +131,34 @@ function SearchPageContent() {
           ) : (
             <div className="space-y-8">
               
-              {/* SONGS RESULTS */}
-              {tracks.length > 0 && (
+              {/* AUDIO RESULTS */}
+              {(activeTab === 'all' || activeTab === 'audio') && audioTracks.length > 0 && (
                 <section className="space-y-3">
-                  <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Tracks</h3>
+                  <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Audio Tracks</h3>
                   <div className="flex flex-col gap-2">
-                    {tracks.map((t, idx) => (
+                    {audioTracks.map((t, idx) => (
                       <TrackRow key={t.id} track={convertToPlayerTrack(t)} index={idx} />
                     ))}
                   </div>
                 </section>
               )}
 
-              {/* NO RESULTS FOR QUERY */}
-              {tracks.length === 0 && (
+              {/* VIDEO RESULTS */}
+              {(activeTab === 'all' || activeTab === 'video') && videoTracks.length > 0 && (
+                <section className="space-y-3">
+                  <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Video Tracks</h3>
+                  <div className="flex flex-col gap-2">
+                    {videoTracks.map((t, idx) => (
+                      <TrackRow key={t.id} track={convertToPlayerTrack(t)} index={idx} />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* NO RESULTS FOR TAB */}
+              {((activeTab === 'audio' && audioTracks.length === 0) ||
+                (activeTab === 'video' && videoTracks.length === 0) ||
+                (activeTab === 'all' && audioTracks.length === 0 && videoTracks.length === 0)) && (
                 <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
                   <p className="text-sm italic">No matching results found for "{debouncedQuery}"</p>
                 </div>
