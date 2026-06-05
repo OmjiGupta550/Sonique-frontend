@@ -11,7 +11,7 @@ export function Sidebar() {
   const { playlists, profile, setShowCreatePlaylistModal, setShowSleepTimerModal, accentColor } = useUIStore();
 
   const navItems = [
-    { label: 'Home', href: '/', icon: Home },
+    { label: 'Home', href: '/app', icon: Home },
     { label: 'Search', href: '/search', icon: Search },
     { label: 'Library', href: '/library', icon: Library },
   ];

@@ -23,7 +23,7 @@ export default function ArtistPage() {
     try {
       const details = await fetchSaavnArtist(artistId);
       if (!details) {
-        router.push('/');
+        router.push('/app');
         return;
       }
       setArtist(details);

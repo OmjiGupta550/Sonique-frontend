@@ -24,7 +24,7 @@ export default function AlbumPage() {
       if (!albumId) return;
       const details = await fetchSaavnAlbum(albumId);
       if (!details) {
-        router.push('/');
+        router.push('/app');
         return;
       }
       setAlbum(details);

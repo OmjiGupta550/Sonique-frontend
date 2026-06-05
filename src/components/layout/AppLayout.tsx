@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Sidebar } from '../sidebar/Sidebar';
 import { Header } from './Header';
 import { MiniPlayer } from '../player/MiniPlayer';
@@ -15,6 +16,8 @@ import { supabase } from '../../lib/supabase';
 import { Music, Disc, Play, Pause, Maximize2 } from 'lucide-react';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isLandingPage = pathname === '/';
   const { loadUserData, setProfile, isLoadingData, accentColor, activeVideoId, playVideo } = useUIStore();
   const { sleepTimerActive, decrementSleepTimer, initAudio, showFullscreenPlayer, setShowFullscreenPlayer, togglePlay, isPlaying, queue, shuffledQueue, isShuffle, currentIndex } = usePlayerStore();
 
@@ -215,6 +218,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     document.addEventListener('click', handleFirstClick);
     return () => document.removeEventListener('click', handleFirstClick);
   }, [initAudio]);
+
+  if (isLandingPage) {
+    return (
+      <div className="min-h-screen w-screen bg-[#050505] text-zinc-100 overflow-x-hidden selection:bg-purple-500/30 selection:text-purple-200">
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 font-sans antialiased text-zinc-200">
