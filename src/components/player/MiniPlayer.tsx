@@ -70,10 +70,10 @@ export function MiniPlayer() {
   const remainingTime = Math.max(0, duration - currentTime);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 h-20 bg-zinc-950/90 border-t border-white/5 backdrop-blur-2xl z-50 select-none">
+    <div className="fixed bottom-16 md:bottom-0 left-0 right-0 h-20 bg-zinc-950/90 border-t border-white/5 backdrop-blur-2xl z-50 select-none">
       <div className="flex items-center justify-between px-4 h-full">
         {/* Left - Artwork Cover or Widescreen Video Corner Preview */}
-        <div className="flex items-center gap-3 w-[30%] min-w-[180px]">
+        <div className="flex items-center gap-3 w-[30%] min-w-[120px] sm:min-w-[180px]">
           {isVideoMode && !showFullscreenPlayer && !activeVideoId ? (
             /* Widescreen YouTube Video Corner Preview */
             <div 
@@ -151,7 +151,7 @@ export function MiniPlayer() {
           <div className="flex items-center gap-4 md:gap-6">
             <button 
               onClick={toggleShuffle}
-              className={`transition ${isShuffle ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
+              className={`hidden sm:block transition ${isShuffle ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
               style={{ color: isShuffle ? accentColor : undefined }}
               title="Shuffle"
             >
@@ -185,7 +185,7 @@ export function MiniPlayer() {
 
             <button 
               onClick={toggleRepeat}
-              className={`relative transition ${repeatMode !== 'none' ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
+              className={`hidden sm:block relative transition ${repeatMode !== 'none' ? 'text-white' : 'text-zinc-500 hover:text-white'}`}
               style={{ color: repeatMode !== 'none' ? accentColor : undefined }}
               title={`Repeat: ${repeatMode}`}
             >
@@ -234,7 +234,7 @@ export function MiniPlayer() {
         </div>
 
         {/* Right Controls */}
-        <div className="flex items-center gap-3 w-[30%] min-w-[180px] justify-end">
+        <div className="flex items-center gap-3 w-[30%] min-w-[100px] sm:min-w-[180px] justify-end">
           <button 
             onClick={() => setShowQueueList(!showQueueList)}
             className={`transition shrink-0 ${showQueueList ? 'text-white' : 'text-zinc-500 hover:text-white'}`}

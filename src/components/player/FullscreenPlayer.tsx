@@ -63,10 +63,25 @@ export function FullscreenPlayer() {
       if (ctx) {
         ctx.drawImage(img, 0, 0, 1, 1);
         const data = ctx.getImageData(0, 0, 1, 1).data;
-        // Don't pick pure black/white to maintain styling vibrancy
-        const r = Math.max(20, Math.min(220, data[0]));
-        const g = Math.max(20, Math.min(220, data[1]));
-        const b = Math.max(20, Math.min(220, data[2]));
+        let r = data[0];
+        let g = data[1];
+        let b = data[2];
+
+        // Ensure the color is not too dark (avoid black/dark grey) by checking perceived brightness
+        // perceived luminance formula: 0.299*R + 0.587*G + 0.114*B
+        const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+        if (brightness < 120) {
+          // Proportionally boost the color components to at least 120 perceived brightness
+          const factor = 120 / (brightness || 1);
+          r = Math.min(255, Math.max(80, r * factor));
+          g = Math.min(255, Math.max(80, g * factor));
+          b = Math.min(255, Math.max(80, b * factor));
+        }
+
+        // Avoid pure white or extremely washed out colors to retain theme accent feel
+        r = Math.min(235, Math.round(r));
+        g = Math.min(235, Math.round(g));
+        b = Math.min(235, Math.round(b));
         
         // Convert to hex
         const rgbToHex = (r: number, g: number, b: number) =>

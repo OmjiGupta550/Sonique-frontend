@@ -13,7 +13,8 @@ import { useUIStore } from '../../store/useUIStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useKeyboard } from '../../hooks/useKeyboard';
 import { supabase } from '../../lib/supabase';
-import { Music, Disc, Play, Pause, Maximize2 } from 'lucide-react';
+import { Music, Disc, Play, Pause, Maximize2, Home, Search, Library } from 'lucide-react';
+import Link from 'next/link';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -242,7 +243,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar />
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden relative pb-20">
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative pb-36 md:pb-20">
         <Header />
         
         {/* Scrollable Body Content */}
@@ -262,6 +263,30 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <MiniPlayer />
       <FullscreenPlayer />
       <QueueDrawer />
+
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-zinc-950/80 border-t border-white/5 backdrop-blur-xl z-50 flex items-center justify-around md:hidden select-none px-4">
+        {[
+          { label: 'Home', href: '/app', icon: Home },
+          { label: 'Search', href: '/search', icon: Search },
+          { label: 'Library', href: '/library', icon: Library },
+        ].map((item) => {
+          const isActive = pathname === item.href;
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-all duration-200
+                ${isActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+              style={{ color: isActive ? accentColor : undefined }}
+            >
+              <Icon className="w-5 h-5" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
 
       {/* Modals Container */}
       <CreatePlaylistModal />

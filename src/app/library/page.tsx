@@ -116,7 +116,6 @@ function LibraryPageContent() {
           { id: 'likes', label: 'Liked Songs', icon: Heart },
           { id: 'playlists', label: 'Playlists', icon: Disc },
           { id: 'history', label: 'History', icon: History },
-          { id: 'downloads', label: 'Downloaded', icon: Download },
           { id: 'profile', label: 'Profile', icon: User }
         ].map((tab) => {
           const Icon = tab.icon;
@@ -165,13 +164,6 @@ function LibraryPageContent() {
                     <div className="flex-1">
                       <TrackRow track={track} index={idx} />
                     </div>
-                    <button
-                      onClick={() => handleDownloadTrack(track)}
-                      className="p-2 text-zinc-500 hover:text-white transition rounded-full hover:bg-white/5 shrink-0"
-                      title="Download Song"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
                   </div>
                 );
               })}
@@ -237,24 +229,6 @@ function LibraryPageContent() {
           </div>
         )}
 
-        {/* TAB: DOWNLOADS */}
-        {activeTab === 'downloads' && (
-          <div className="space-y-4">
-            <div className="flex flex-col gap-2">
-              {downloadedTracks.map((track, idx) => (
-                <TrackRow key={track.id} track={track} index={idx} />
-              ))}
-
-              {downloadedTracks.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-20 text-zinc-500 text-center gap-2">
-                  <Download className="w-12 h-12 stroke-1 opacity-40 text-emerald-400" />
-                  <h4 className="text-zinc-300 font-semibold">No Downloads Available</h4>
-                  <p className="text-xs max-w-xs">Tap the download icon next to your Liked Songs to cache them for offline listening.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* TAB: PROFILE & SYSTEM ACCENT COLORS */}
         {activeTab === 'profile' && (
