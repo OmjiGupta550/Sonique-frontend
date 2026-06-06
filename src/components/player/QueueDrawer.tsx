@@ -108,7 +108,7 @@ export function QueueDrawer() {
                     src={
                       track.coverUrl && track.coverUrl.trim() !== '' && track.coverUrl !== 'null' && track.coverUrl !== 'undefined'
                         ? track.coverUrl
-                        : (track.id && track.id.length === 11 ? `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg` : "/placeholder.png")
+                        : (track.id && track.id.length === 11 ? `https://i.ytimg.com/vi/${track.id}/maxresdefault.jpg` : "/placeholder.png")
                     } 
                     alt="" 
                     className="w-full h-full object-cover"

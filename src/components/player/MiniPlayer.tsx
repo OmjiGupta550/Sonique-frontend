@@ -60,7 +60,7 @@ export function MiniPlayer() {
       return t.coverUrl;
     }
     if (t.id && t.id.length === 11) {
-      return `https://i.ytimg.com/vi/${t.id}/hqdefault.jpg`;
+      return `https://i.ytimg.com/vi/${t.id}/maxresdefault.jpg`;
     }
     return fallback;
   };

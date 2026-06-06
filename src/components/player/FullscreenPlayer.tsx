@@ -198,7 +198,7 @@ export function FullscreenPlayer() {
                   src={
                     currentTrack.coverUrl && currentTrack.coverUrl.trim() !== '' && currentTrack.coverUrl !== 'null' && currentTrack.coverUrl !== 'undefined'
                       ? currentTrack.coverUrl
-                      : (currentTrack.id && currentTrack.id.length === 11 ? `https://i.ytimg.com/vi/${currentTrack.id}/hqdefault.jpg` : "/placeholder.png")
+                      : (currentTrack.id && currentTrack.id.length === 11 ? `https://i.ytimg.com/vi/${currentTrack.id}/maxresdefault.jpg` : "/placeholder.png")
                   }
                   alt={currentTrack.title}
                   className="w-full h-full object-cover"

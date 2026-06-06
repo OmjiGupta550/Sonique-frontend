@@ -4,6 +4,22 @@ import albumCoversMapping from './album_covers_mapping.json';
 import { API_URL as API_ROOT } from './config';
 const mapping: Record<string, string> = albumCoversMapping;
 
+export function getHighResThumbnailUrl(url: string | null): string | null {
+  if (!url) return null;
+  
+  if (url.includes('googleusercontent.com') || url.includes('ggpht.com')) {
+    let newUrl = url.replace(/=w\d+-h\d+/, '=w500-h500');
+    newUrl = newUrl.replace(/=s\d+-c/, '=s500-c');
+    return newUrl;
+  }
+  
+  if (url.includes('i.ytimg.com') || url.includes('img.youtube.com')) {
+    return url.replace(/\/(default|hqdefault|mqdefault|sddefault)\.jpg/, '/maxresdefault.jpg');
+  }
+  
+  return url;
+}
+
 export interface SaavnTrack {
   id: string;
   title: string;
@@ -47,7 +63,7 @@ export async function searchSaavnSongs(query: string, limit = 50): Promise<Saavn
       id: s.id,
       title: s.title,
       artist: s.artist,
-      coverUrl: mapping[s.id] || s.thumbnail || null,
+      coverUrl: getHighResThumbnailUrl(mapping[s.id] || s.thumbnail || null),
       duration: s.duration,
       sourceUrl: `${API_ROOT}/api/stream/${s.id}?redirect=true`,
       hasVideo: s.hasVideo
@@ -74,9 +90,9 @@ export async function fetchSaavnPlaylist(playlistId: string): Promise<SaavnPlayl
     
     const tracks = (json.tracks || []).map((t: any) => {
       const trackId = t.videoId;
-      const trackCover = mapping[trackId] || (t.thumbnails && t.thumbnails.length > 0 
+      const trackCover = getHighResThumbnailUrl(mapping[trackId] || (t.thumbnails && t.thumbnails.length > 0 
         ? t.thumbnails[t.thumbnails.length - 1]?.url 
-        : (coverUrl || (trackId ? `https://img.youtube.com/vi/${trackId}/0.jpg` : null)));
+        : (coverUrl || (trackId ? `https://img.youtube.com/vi/${trackId}/0.jpg` : null))));
       return {
         id: trackId,
         title: t.title,
@@ -117,9 +133,9 @@ export async function fetchSaavnAlbum(albumId: string): Promise<SaavnPlaylistDet
 
     const tracks = (json.tracks || []).map((t: any) => {
       const trackId = t.videoId;
-      const trackCover = mapping[trackId] || (t.thumbnails && t.thumbnails.length > 0 
+      const trackCover = getHighResThumbnailUrl(mapping[trackId] || (t.thumbnails && t.thumbnails.length > 0 
         ? t.thumbnails[t.thumbnails.length - 1]?.url 
-        : (coverUrl || (trackId ? `https://img.youtube.com/vi/${trackId}/0.jpg` : null)));
+        : (coverUrl || (trackId ? `https://img.youtube.com/vi/${trackId}/0.jpg` : null))));
       return {
         id: trackId,
         title: t.title,
@@ -170,9 +186,9 @@ export async function fetchSaavnArtist(artistId: string): Promise<SaavnArtistDet
     const songsList = ((json.songs ? json.songs.results : json.tracks) || []);
     let tracks = songsList.map((t: any) => {
       const videoId = t.videoId || t.id;
-      const trackCover = mapping[videoId] || (t.thumbnails && t.thumbnails.length > 0 
+      const trackCover = getHighResThumbnailUrl(mapping[videoId] || (t.thumbnails && t.thumbnails.length > 0 
         ? t.thumbnails[t.thumbnails.length - 1]?.url 
-        : (avatarUrl || (videoId ? `https://img.youtube.com/vi/${videoId}/0.jpg` : 'https://images.unsplash.com/photo-1614680376593-902f74fa0d41?q=80&w=200&auto=format&fit=crop')));
+        : (avatarUrl || (videoId ? `https://img.youtube.com/vi/${videoId}/0.jpg` : 'https://images.unsplash.com/photo-1614680376593-902f74fa0d41?q=80&w=200&auto=format&fit=crop'))));
       return {
         id: videoId,
         title: t.title,
@@ -190,7 +206,7 @@ export async function fetchSaavnArtist(artistId: string): Promise<SaavnArtistDet
         const existingIds = new Set(tracks.map((t: any) => t.id));
         for (const st of searchTracks) {
           if (!existingIds.has(st.id)) {
-            const trackCover = mapping[st.id] || st.coverUrl || `https://images.unsplash.com/photo-1614680376593-902f74fa0d41?q=80&w=200&auto=format&fit=crop`;
+            const trackCover = getHighResThumbnailUrl(mapping[st.id] || st.coverUrl || `https://images.unsplash.com/photo-1614680376593-902f74fa0d41?q=80&w=200&auto=format&fit=crop`);
             tracks.push({
               id: st.id,
               title: st.title,
