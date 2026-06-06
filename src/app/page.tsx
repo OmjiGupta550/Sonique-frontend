@@ -256,11 +256,11 @@ function HeroSection({ scrollYProgress, router }: { scrollYProgress: any, router
       const cx = width / 2;
       const cy = height / 2;
 
-      // Mouse interactive rotation offsets
-      const targetRotationY = mousePos.x * 0.4;
-      const targetRotationX = mousePos.y * 0.4;
-      rotationY += (targetRotationY - rotationY) * 0.05;
-      rotationX += (targetRotationX - rotationX) * 0.05;
+      // Mouse interactive rotation offsets (reduced speed and smoothed out)
+      const targetRotationY = mousePos.x * 0.1;
+      const targetRotationX = mousePos.y * 0.1;
+      rotationY += (targetRotationY - rotationY) * 0.02;
+      rotationX += (targetRotationX - rotationX) * 0.02;
 
       const autoAngle = Date.now() * 0.0004;
       const fov = 400;
@@ -475,7 +475,7 @@ function HeroSection({ scrollYProgress, router }: { scrollYProgress: any, router
       </div>
 
       {/* SECTION 2: SCROLL REVEAL FEATURE CARDS */}
-      <div id="features" className="w-full max-w-5xl mx-auto px-6 py-20 relative z-20 mt-32">
+      <div id="features" className="w-full max-w-5xl mx-auto px-6 py-20 relative z-20 min-h-screen flex flex-col justify-center items-center">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-4">
             Next-Gen Features
@@ -572,7 +572,7 @@ function PhoneShowcaseSection() {
   }, []);
 
   return (
-    <section className="relative w-full max-w-6xl mx-auto px-6 py-32 z-20 flex flex-col lg:flex-row items-center justify-between gap-16">
+    <section className="relative w-full max-w-6xl mx-auto px-6 min-h-screen z-20 flex flex-col lg:flex-row items-center justify-center gap-16 py-20">
       
       {/* LEFT: TEXT DESCRIPTION */}
       <div className="flex-1 space-y-6 text-center lg:text-left">
@@ -697,7 +697,7 @@ function PhoneShowcaseSection() {
 // ----------------------------------------------------
 function WhySoniqueSection() {
   return (
-    <section id="why-sonique" className="relative w-full max-w-5xl mx-auto px-6 py-24 z-20">
+    <section id="why-sonique" className="relative w-full max-w-5xl mx-auto px-6 min-h-screen z-20 flex flex-col justify-center py-20">
       <div className="text-center mb-16 space-y-4">
         <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white">
           Why Sonique?
@@ -751,7 +751,7 @@ function TiltGlassPanel({ title, desc, badge, glow, floatOffset }: TiltCardProps
     const rect = card.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: x * 24, y: y * -24 });
+    setTilt({ x: x * 8, y: y * -8 });
   };
 
   const handleMouseLeave = () => {
@@ -770,8 +770,8 @@ function TiltGlassPanel({ title, desc, badge, glow, floatOffset }: TiltCardProps
       }}
       transition={{ 
         type: "spring", 
-        stiffness: 220, 
-        damping: 18,
+        stiffness: 80, 
+        damping: 25,
         y: {
           repeat: Infinity,
           duration: 4,
@@ -1087,7 +1087,7 @@ function AppScreenshotsSection() {
     <section 
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative w-full max-w-6xl mx-auto px-6 py-32 z-20 overflow-hidden"
+      className="relative w-full max-w-6xl mx-auto px-6 min-h-screen z-20 overflow-hidden flex flex-col justify-center py-20"
     >
       <div className="text-center mb-20 space-y-4">
         <motion.div 
@@ -1328,7 +1328,7 @@ function CTASection({ router }: { router: any }) {
   }, [hovered]);
 
   return (
-    <section className="relative min-h-[90vh] flex flex-col items-center justify-center z-20 text-center px-4 overflow-hidden border-t border-white/5">
+    <section className="relative min-h-screen flex flex-col items-center justify-center z-20 text-center px-4 overflow-hidden border-t border-white/5 py-20">
       
       {/* VORTEX CANVAS BACKGROUND */}
       <div className="absolute inset-0 w-full h-full pointer-events-none z-10 flex items-center justify-center">
