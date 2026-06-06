@@ -520,9 +520,17 @@ export const usePlayerStore = create<PlayerState>((set, get) => {
       set({ isLyricsLoading: true, lyrics: [], currentLyricIndex: -1 });
 
       try {
-        let lyricsLines: LyricLine[] | null = null;
-        const shouldPlayVideo = get().isVideoMode;
+        // 1. Try to fetch synced lyrics from LRCLIB first
+        const lrclibData = await fetchLyrics(track.title, track.artist, track.duration);
+        
+        if (lrclibData && (lrclibData.syncedLyrics || lrclibData.isInstrumental)) {
+          set({ lyrics: lrclibData.parsedLines, isLyricsLoading: false });
+          return;
+        }
 
+        // 2. Fall back to JioSaavn plain text lyrics if no synced lyrics found
+        let jioSaavnLyrics: LyricLine[] | null = null;
+        const shouldPlayVideo = get().isVideoMode;
         if (!shouldPlayVideo) {
           try {
             const res = await fetch(`${API_BASE}/api/lyrics?videoId=${track.id}&title=${encodeURIComponent(track.title)}&artist=${encodeURIComponent(track.artist)}&has_video=false`);
@@ -530,7 +538,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => {
               const data = await res.json();
               if (data.lyrics) {
                 const lines = data.lyrics.split('\n');
-                lyricsLines = lines.map((line: string, index: number) => ({
+                jioSaavnLyrics = lines.map((line: string, index: number) => ({
                   time: index * 4,
                   text: line.trim()
                 })).filter((l: any) => l.text.length > 0);
@@ -541,19 +549,15 @@ export const usePlayerStore = create<PlayerState>((set, get) => {
           }
         }
 
-        if (lyricsLines) {
-          set({ lyrics: lyricsLines, isLyricsLoading: false });
+        if (jioSaavnLyrics && jioSaavnLyrics.length > 0) {
+          set({ lyrics: jioSaavnLyrics, isLyricsLoading: false });
+        } else if (lrclibData && lrclibData.parsedLines && lrclibData.parsedLines.length > 0) {
+          set({ lyrics: lrclibData.parsedLines, isLyricsLoading: false });
         } else {
-          // Fall back to LRCLIB (YouTube lyrics)
-          const data = await fetchLyrics(track.title, track.artist, track.duration);
-          if (data) {
-            set({ lyrics: data.parsedLines, isLyricsLoading: false });
-          } else {
-            set({
-              lyrics: [{ time: 0, text: 'Lyrics not available' }],
-              isLyricsLoading: false,
-            });
-          }
+          set({
+            lyrics: [{ time: 0, text: 'Lyrics not available' }],
+            isLyricsLoading: false,
+          });
         }
       } catch (err) {
         console.error(err);
