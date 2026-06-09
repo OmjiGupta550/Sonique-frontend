@@ -273,6 +273,9 @@ function HeroSection({ scrollYProgress, router }: { scrollYProgress: any, router
       ctx.fillStyle = radialGlow;
       ctx.fillRect(cx - 250, cy - 250, 500, 500);
 
+      // Calculate design scale dynamically based on canvas bounds
+      const designScale = Math.min(1.0, Math.min(width, height) / 750);
+
       // Sort and project particles
       const sortedParticles = particles.map(p => {
         // Apply spring force back to original position
@@ -302,7 +305,8 @@ function HeroSection({ scrollYProgress, router }: { scrollYProgress: any, router
         const wave = Math.sin(autoAngle * 2 + p.angle) * 8;
         y2 += wave;
 
-        return { ...p, rx: x1, ry: y2, rz: z2 };
+        // Apply dynamic responsiveness design scale to coords
+        return { ...p, rx: x1 * designScale, ry: y2 * designScale, rz: z2 * designScale };
       });
 
       sortedParticles.sort((a, b) => b.rz - a.rz);
@@ -316,13 +320,13 @@ function HeroSection({ scrollYProgress, router }: { scrollYProgress: any, router
         if (px >= 0 && px <= width && py >= 0 && py <= height) {
           const alpha = Math.max(0.1, Math.min(1.0, (fov - p.rz) / (fov * 0.8)));
           ctx.beginPath();
-          ctx.arc(px, py, p.size * scale * 1.5, 0, Math.PI * 2);
+          ctx.arc(px, py, p.size * scale * 1.5 * Math.max(0.7, designScale), 0, Math.PI * 2);
           ctx.fillStyle = `${p.color}${alpha})`;
           ctx.fill();
 
           if (p.rz < -50 && Math.random() > 0.985) {
             ctx.beginPath();
-            ctx.arc(px, py, p.size * scale * 4, 0, Math.PI * 2);
+            ctx.arc(px, py, p.size * scale * 4 * Math.max(0.7, designScale), 0, Math.PI * 2);
             ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.45})`;
             ctx.fill();
           }
@@ -333,9 +337,9 @@ function HeroSection({ scrollYProgress, router }: { scrollYProgress: any, router
       orbits.forEach(orb => {
         orb.angle += orb.speed;
         
-        const ox = orb.radius * Math.cos(orb.angle);
-        const oy = orb.radius * Math.sin(orb.angle) * 0.35;
-        const oz = orb.radius * Math.sin(orb.angle) * 0.9;
+        const ox = orb.radius * Math.cos(orb.angle) * designScale;
+        const oy = orb.radius * Math.sin(orb.angle) * 0.35 * designScale;
+        const oz = orb.radius * Math.sin(orb.angle) * 0.9 * designScale;
 
         let rx = ox * Math.cos(rotationY) - oz * Math.sin(rotationY);
         let rz = ox * Math.sin(rotationY) + oz * Math.cos(rotationY);
@@ -348,20 +352,20 @@ function HeroSection({ scrollYProgress, router }: { scrollYProgress: any, router
 
         if (finalZ > 0) {
           ctx.beginPath();
-          ctx.arc(px, py, 6 * scale, 0, Math.PI * 2);
+          ctx.arc(px, py, 6 * scale * Math.max(0.7, designScale), 0, Math.PI * 2);
           ctx.fillStyle = orb.color;
           ctx.globalAlpha = 0.35;
           ctx.fill();
           ctx.globalAlpha = 1.0;
         }
 
-        const cardSize = 42 * scale;
+        const cardSize = 42 * scale * Math.max(0.65, designScale);
         ctx.strokeStyle = `rgba(255, 255, 255, ${Math.max(0.25, scale * 0.55)})`;
         ctx.lineWidth = 1;
         ctx.strokeRect(px - cardSize / 2, py - cardSize / 2, cardSize, cardSize);
 
         ctx.shadowColor = orb.color;
-        ctx.shadowBlur = 18;
+        ctx.shadowBlur = 18 * Math.max(0.7, designScale);
         
         ctx.beginPath();
         ctx.arc(px, py, cardSize * 0.45, 0, Math.PI * 2);
@@ -899,22 +903,25 @@ function MusicGalaxySection({ scrollYProgress }: { scrollYProgress: any }) {
       const cx = width / 2;
       const cy = height / 2;
 
+      // Calculate dynamic designScale for responsiveness
+      const designScale = Math.min(1.0, Math.min(width, height) / 700);
+
       // Draw large ambient glowing portal core
-      const coreGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 180);
+      const coreGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 180 * designScale);
       coreGlow.addColorStop(0, 'rgba(168, 85, 247, 0.14)');
       coreGlow.addColorStop(0.5, 'rgba(59, 130, 246, 0.07)');
       coreGlow.addColorStop(1, 'rgba(5, 5, 5, 0)');
       ctx.fillStyle = coreGlow;
-      ctx.fillRect(cx - 300, cy - 300, 600, 600);
+      ctx.fillRect(cx - 300 * designScale, cy - 300 * designScale, 600 * designScale, 600 * designScale);
 
       // Render Sonique text in center with pulsing shadow glow
       const pulseFactor = Math.sin(Date.now() * 0.003) * 8 + 18;
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 36px sans-serif';
+      ctx.font = `bold ${Math.round(36 * Math.max(0.7, designScale))}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.shadowColor = '#d946ef';
-      ctx.shadowBlur = pulseFactor;
+      ctx.shadowBlur = pulseFactor * designScale;
       ctx.fillText('S', cx, cy);
       ctx.shadowBlur = 0;
 
@@ -923,7 +930,7 @@ function MusicGalaxySection({ scrollYProgress }: { scrollYProgress: any }) {
       ctx.lineWidth = 1;
       for (let r = 80; r < 300; r += 50) {
         ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.arc(cx, cy, r * designScale, 0, Math.PI * 2);
         ctx.stroke();
       }
 
@@ -932,8 +939,8 @@ function MusicGalaxySection({ scrollYProgress }: { scrollYProgress: any }) {
       // Draw background galaxy stars
       particles.forEach(p => {
         p.angle += p.speed;
-        const x = Math.cos(p.angle) * p.distance;
-        const z = Math.sin(p.angle) * p.distance;
+        const x = Math.cos(p.angle) * p.distance * designScale;
+        const z = Math.sin(p.angle) * p.distance * designScale;
 
         const pitch = 0.65;
         const finalX = x;
@@ -946,7 +953,7 @@ function MusicGalaxySection({ scrollYProgress }: { scrollYProgress: any }) {
 
         if (px >= 0 && px <= width && py >= 0 && py <= height) {
           ctx.beginPath();
-          ctx.arc(px, py, p.size * scale, 0, Math.PI * 2);
+          ctx.arc(px, py, p.size * scale * Math.max(0.8, designScale), 0, Math.PI * 2);
           ctx.fillStyle = p.color;
           ctx.fill();
         }
@@ -990,30 +997,31 @@ function MusicGalaxySection({ scrollYProgress }: { scrollYProgress: any }) {
       // Draw orbiting albums
       planetaryCovers.forEach(album => {
         album.angle += album.speed;
-        const ax = Math.cos(album.angle) * album.distance;
-        const az = Math.sin(album.angle) * album.distance;
+        const ax = Math.cos(album.angle) * album.distance * designScale;
+        const az = Math.sin(album.angle) * album.distance * designScale;
 
         const pitch = 0.65;
         const finalX = ax;
-        const finalY = album.yOffset * Math.cos(pitch) - az * Math.sin(pitch);
-        const finalZ = album.yOffset * Math.sin(pitch) + az * Math.cos(pitch);
+        const finalY = (album.yOffset * designScale) * Math.cos(pitch) - az * Math.sin(pitch);
+        const finalZ = (album.yOffset * designScale) * Math.sin(pitch) + az * Math.cos(pitch);
 
         const scale = fov / (fov + finalZ);
         const px = cx + finalX * scale;
         const py = cy + finalY * scale;
 
-        const imgSize = 25 * scale;
+        const imgSize = 25 * scale * Math.max(0.6, designScale);
 
         ctx.beginPath();
         ctx.arc(px, py, imgSize * 0.9, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.shadowColor = 'transparent';
         ctx.strokeStyle = 'rgba(255,255,255,0.15)';
         ctx.lineWidth = 1;
         ctx.fill();
         ctx.stroke();
 
         ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-        ctx.font = `${Math.max(6, 7 * scale)}px sans-serif`;
+        ctx.font = `${Math.max(6, 7 * scale * Math.max(0.7, designScale))}px sans-serif`;
         ctx.fillText(album.name, px, py + imgSize + 6);
       });
 
@@ -1071,6 +1079,16 @@ function MusicGalaxySection({ scrollYProgress }: { scrollYProgress: any }) {
 // ----------------------------------------------------
 function AppScreenshotsSection() {
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -1112,16 +1130,16 @@ function AppScreenshotsSection() {
         
         {/* Layer 1: Left background (Home shelf) - moves slightly counter-mouse */}
         <motion.div 
-          initial={{ opacity: 0, x: -150, y: 50, rotate: -8, scale: 0.9 }}
-          whileInView={{ opacity: 1, x: -160, y: 20, rotate: -10, scale: 0.95 }}
+          initial={{ opacity: 0, x: isMobile ? -40 : -150, y: isMobile ? 80 : 50, rotate: -8, scale: 0.9 }}
+          whileInView={{ opacity: 1, x: isMobile ? -50 : -160, y: isMobile ? 80 : 20, rotate: -10, scale: 0.95 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
           animate={{
-            x: -160 + mouseOffset.x * -35,
-            y: 20 + mouseOffset.y * -35
+            x: (isMobile ? -50 : -160) + mouseOffset.x * -35,
+            y: (isMobile ? 80 : 20) + mouseOffset.y * -35
           }}
           whileHover={{ scale: 1.02, rotate: -6, zIndex: 40 }}
-          className="absolute w-[280px] md:w-[360px] aspect-[16/10] bg-zinc-900 border border-white/5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] p-4 text-left flex flex-col gap-2 z-10 cursor-pointer"
+          className="absolute w-[220px] md:w-[360px] aspect-[16/10] bg-zinc-900 border border-white/5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] p-4 text-left flex flex-col gap-2 z-10 cursor-pointer"
         >
           <div className="flex items-center gap-1.5 border-b border-white/5 pb-2">
             <span className="w-2 h-2 rounded-full bg-red-500" />
@@ -1139,16 +1157,16 @@ function AppScreenshotsSection() {
 
         {/* Layer 2: Right background (Queue / Playlist) - moves slightly counter-mouse */}
         <motion.div 
-          initial={{ opacity: 0, x: 150, y: -50, rotate: 8, scale: 0.9 }}
-          whileInView={{ opacity: 1, x: 160, y: -20, rotate: 10, scale: 0.95 }}
+          initial={{ opacity: 0, x: isMobile ? 40 : 150, y: isMobile ? -80 : -50, rotate: 8, scale: 0.9 }}
+          whileInView={{ opacity: 1, x: isMobile ? 50 : 160, y: isMobile ? -80 : -20, rotate: 10, scale: 0.95 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
           animate={{
-            x: 160 + mouseOffset.x * -20,
-            y: -20 + mouseOffset.y * -20
+            x: (isMobile ? 50 : 160) + mouseOffset.x * -20,
+            y: (isMobile ? -80 : -20) + mouseOffset.y * -20
           }}
           whileHover={{ scale: 1.02, rotate: 6, zIndex: 40 }}
-          className="absolute w-[280px] md:w-[340px] aspect-[16/11] bg-zinc-900 border border-white/5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] p-4 text-left flex flex-col gap-3 z-15 cursor-pointer"
+          className="absolute w-[220px] md:w-[340px] aspect-[16/11] bg-zinc-900 border border-white/5 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] p-4 text-left flex flex-col gap-3 z-15 cursor-pointer"
         >
           <div className="flex items-center justify-between border-b border-white/5 pb-2">
             <span className="font-extrabold text-[9px] text-zinc-300">Play Queue</span>
@@ -1177,15 +1195,16 @@ function AppScreenshotsSection() {
         {/* Layer 3: CENTER FOREGROUND (Interactive player overlay) - moves with mouse (parallax depth) */}
         <motion.div 
           initial={{ opacity: 0, y: 100, scale: 0.9 }}
-          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          whileInView={{ opacity: 1, y: 0, scale: isMobile ? 0.85 : 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, type: "spring", stiffness: 50 }}
           animate={{
             x: mouseOffset.x * 45,
-            y: mouseOffset.y * 45
+            y: mouseOffset.y * 45,
+            scale: isMobile ? 0.85 : 1
           }}
-          whileHover={{ scale: 1.04, zIndex: 50, border: '1px solid rgba(255,255,255,0.2)' }}
-          className="absolute w-[310px] md:w-[380px] aspect-[16/12] bg-[#0c0c0e] border border-white/10 rounded-2xl shadow-[0_40px_100px_rgba(0,0,0,0.9)] p-6 text-left flex flex-col justify-between z-30 cursor-default"
+          whileHover={{ scale: isMobile ? 0.88 : 1.04, zIndex: 50, border: '1px solid rgba(255,255,255,0.2)' }}
+          className="absolute w-[280px] md:w-[380px] aspect-[16/12] bg-[#0c0c0e] border border-white/10 rounded-2xl shadow-[0_40px_100px_rgba(0,0,0,0.9)] p-6 text-left flex flex-col justify-between z-30 cursor-default"
         >
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -1283,17 +1302,20 @@ function CTASection({ router }: { router: any }) {
       const cx = width / 2;
       const cy = height / 2;
 
+      // Calculate dynamic designScale for responsiveness
+      const designScale = Math.min(1.0, Math.min(width, height) / 700);
+
       // Render glowing portal center with slow breathing pulse
       const pulseFactor = Math.sin(Date.now() * 0.002) * 15;
       const baseGlow = hovered ? 190 : 130;
-      const finalGlow = baseGlow + pulseFactor;
+      const finalGlow = (baseGlow + pulseFactor) * designScale;
 
       const portalGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, finalGlow);
       portalGlow.addColorStop(0, hovered ? 'rgba(168, 85, 247, 0.28)' : 'rgba(168, 85, 247, 0.18)');
       portalGlow.addColorStop(0.6, hovered ? 'rgba(236, 72, 153, 0.14)' : 'rgba(236, 72, 153, 0.08)');
       portalGlow.addColorStop(1, 'rgba(5, 5, 5, 0)');
       ctx.fillStyle = portalGlow;
-      ctx.fillRect(cx - 250, cy - 250, 500, 500);
+      ctx.fillRect(cx - 250 * designScale, cy - 250 * designScale, 500 * designScale, 500 * designScale);
 
       // Portal vortex path
       particles.forEach(p => {
@@ -1306,12 +1328,12 @@ function CTASection({ router }: { router: any }) {
           p.angle = Math.random() * Math.PI * 2;
         }
 
-        const px = cx + Math.cos(p.angle) * p.distance;
-        const py = cy + Math.sin(p.angle) * p.distance;
-        const alpha = Math.max(0.1, Math.min(0.8, p.distance / 200));
+        const px = cx + Math.cos(p.angle) * p.distance * designScale;
+        const py = cy + Math.sin(p.angle) * p.distance * designScale;
+        const alpha = Math.max(0.1, Math.min(0.8, (p.distance * designScale) / 200));
 
         ctx.beginPath();
-        ctx.arc(px, py, p.size * (hovered ? 1.5 : 1.0), 0, Math.PI * 2);
+        ctx.arc(px, py, p.size * (hovered ? 1.5 : 1.0) * Math.max(0.7, designScale), 0, Math.PI * 2);
         ctx.fillStyle = `${p.color}${alpha})`;
         ctx.fill();
       });

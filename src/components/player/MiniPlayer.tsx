@@ -71,7 +71,9 @@ export function MiniPlayer() {
 
   return (
     <div className="fixed bottom-16 md:bottom-0 left-0 right-0 h-20 bg-zinc-950/90 border-t border-white/5 backdrop-blur-2xl z-50 select-none">
-      <div className="flex items-center justify-between px-4 h-full">
+      
+      {/* Desktop Layout (md:flex) */}
+      <div className="hidden md:flex items-center justify-between px-4 h-full">
         {/* Left - Artwork Cover or Widescreen Video Corner Preview */}
         <div className="flex items-center gap-3 w-[30%] min-w-[120px] sm:min-w-[180px]">
           {isVideoMode && !showFullscreenPlayer && !activeVideoId ? (
@@ -295,6 +297,95 @@ export function MiniPlayer() {
           </button>
         </div>
       </div>
+
+      {/* Mobile Layout (md:hidden) */}
+      <div className="flex md:hidden items-center justify-between px-4 h-full w-full relative">
+        {/* Progress bar overlay at the very top of the bar */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-zinc-800">
+          <div 
+            className="h-full transition-all duration-100" 
+            style={{ width: `${progress}%`, backgroundColor: accentColor }} 
+          />
+        </div>
+
+        {/* Left section: Artwork + Title & Artist */}
+        <div 
+          className="flex items-center gap-3 min-w-0 flex-1 mr-4 cursor-pointer"
+          onClick={() => setShowFullscreenPlayer(true)}
+        >
+          {isVideoMode && !showFullscreenPlayer && !activeVideoId ? (
+            <div className="w-12 h-8 rounded bg-zinc-950 overflow-hidden shrink-0 border border-white/10 relative">
+              <div id="youtube-player-placeholder" className="w-full h-full bg-transparent" />
+              <div className="absolute inset-0 z-10" onClick={(e) => { e.stopPropagation(); togglePlay(); }} />
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded bg-zinc-900 overflow-hidden border border-white/10 shrink-0 relative">
+              <img 
+                src={coverSrc} 
+                alt={track.title} 
+                className="w-full h-full object-cover" 
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  if (e.currentTarget.src !== `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg` && track.id && track.id.length === 11) {
+                    e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg`;
+                  } else {
+                    e.currentTarget.src = "/placeholder.png";
+                  }
+                }}
+              />
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <h4 className="text-xs font-semibold text-white truncate">{track.title}</h4>
+            <p className="text-[10px] text-zinc-400 truncate mt-0.5">{track.artist}</p>
+          </div>
+        </div>
+
+        {/* Right section: Play/Pause, TV (optional), Heart/Maximize */}
+        <div className="flex items-center gap-4 shrink-0">
+          <button onClick={() => toggleLike(track)} className="text-zinc-400 active:scale-90 transition">
+            <Heart className={`w-5 h-5 ${isLiked(track.id) ? 'fill-red-500 text-red-500' : ''}`} />
+          </button>
+
+          {track.hasVideo && (
+            <button
+              onClick={() => {
+                if (isVideoMode) {
+                  setVideoMode(false);
+                  closeVideo();
+                } else {
+                  setVideoMode(true);
+                  playVideo(track.id);
+                }
+              }}
+              className={`transition shrink-0 p-1 rounded-full ${
+                isVideoMode ? 'text-red-400 animate-pulse' : 'text-zinc-400'
+              }`}
+            >
+              <Tv className="w-4.5 h-4.5" />
+            </button>
+          )}
+
+          <button 
+            onClick={togglePlay}
+            className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-zinc-950 active:scale-95 transition shrink-0"
+          >
+            {isPlaying ? (
+              <Pause className="w-4 h-4 fill-zinc-950 text-zinc-950" />
+            ) : (
+              <Play className="w-4 h-4 fill-zinc-950 text-zinc-950 translate-x-0.5" />
+            )}
+          </button>
+          
+          <button 
+            onClick={() => setShowFullscreenPlayer(true)}
+            className="text-zinc-400 active:scale-90 transition shrink-0"
+          >
+            <Maximize2 className="w-4.5 h-4.5" />
+          </button>
+        </div>
+      </div>
+
     </div>
   );
 }

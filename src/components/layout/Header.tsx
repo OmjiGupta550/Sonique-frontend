@@ -43,7 +43,7 @@ export function Header() {
 
       {/* Center Search Input */}
       {pathname !== '/search' ? (
-        <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md mx-6 relative">
+        <form onSubmit={handleSearchSubmit} className="hidden sm:block flex-1 max-w-md mx-6 relative">
           <input
             type="text"
             value={searchQuery}
