@@ -38,6 +38,30 @@ export default function HomePage() {
   const [visibleShelvesCount, setVisibleShelvesCount] = useState(4);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
+  const [localHistory, setLocalHistory] = useState<PlayerTrack[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const loadLocalHistory = () => {
+      if (typeof window !== 'undefined') {
+        const hist = JSON.parse(localStorage.getItem('sonique_history') || '[]');
+        setLocalHistory(hist);
+      }
+    };
+    loadLocalHistory();
+    window.addEventListener('sonique_history_changed', loadLocalHistory);
+    return () => window.removeEventListener('sonique_history_changed', loadLocalHistory);
+  }, []);
+
   // Define shelves structure matching user request + new music albums sections
   const rawShelves = shelves
     ? [
@@ -99,13 +123,17 @@ export default function HomePage() {
           id: 'continue_listening',
           title: 'Continue Listening',
           icon: <Grid className="w-5 h-5 text-cyan-400" />,
-          tracks: shelves.continue_listening || []
+          tracks: (shelves.continue_listening && shelves.continue_listening.length > 0)
+            ? shelves.continue_listening
+            : localHistory.slice(0, 6)
         },
         {
           id: 'recently_played',
           title: 'Recently Played',
           icon: <History className="w-5 h-5 text-orange-400" />,
-          tracks: shelves.recently_played || []
+          tracks: (shelves.recently_played && shelves.recently_played.length > 0)
+            ? shelves.recently_played
+            : localHistory
         },
         {
           id: 'discover_new',
@@ -117,7 +145,7 @@ export default function HomePage() {
     : [];
 
   // Filter shelvesList: if no profile (guest), show only the specific guest shelves
-  const shelvesList = profile
+  const filteredShelves = profile
     ? rawShelves
     : rawShelves.filter(shelf => [
         'recommended_for_you',
@@ -133,17 +161,31 @@ export default function HomePage() {
         'recent_listening_based'
       ].includes(shelf.id));
 
+  // If mobile, put recently_played and continue_listening at the very top of shelvesList
+  const shelvesList = isMobile
+    ? [
+        filteredShelves.find(s => s.id === 'recently_played'),
+        filteredShelves.find(s => s.id === 'continue_listening'),
+        filteredShelves.find(s => s.id === 'recommended_for_you'),
+        filteredShelves.find(s => s.id === 'trending_now'),
+        filteredShelves.find(s => s.id === 'new_releases'),
+        filteredShelves.find(s => s.id === 'daily_mix'),
+        ...filteredShelves.filter(s => !['recently_played', 'continue_listening', 'recommended_for_you', 'trending_now', 'new_releases', 'daily_mix'].includes(s.id))
+      ].filter((s): s is typeof filteredShelves[number] => s !== undefined)
+    : filteredShelves;
+
   // Helper to convert RecTrack to PlayerTrack
-  const convertToPlayerTrack = (track: RecTrack): PlayerTrack => ({
+  const convertToPlayerTrack = (track: any): PlayerTrack => ({
     id: track.id,
     title: track.title,
     artist: track.artist,
     coverUrl: track.coverUrl,
     duration: track.duration,
-    sourceUrl: `${API_BASE}/stream/${track.id}?redirect=true`,
+    sourceUrl: track.sourceUrl || `${API_BASE}/stream/${track.id}?redirect=true`,
     confidence: track.confidence,
     genre: track.genre
   });
+
 
   const getGreeting = () => {
     const hr = new Date().getHours();

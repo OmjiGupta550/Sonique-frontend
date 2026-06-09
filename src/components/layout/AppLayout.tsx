@@ -13,8 +13,10 @@ import { useUIStore } from '../../store/useUIStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useKeyboard } from '../../hooks/useKeyboard';
 import { supabase } from '../../lib/supabase';
-import { Music, Disc, Play, Pause, Maximize2, Home, Search, Library } from 'lucide-react';
+import { Music, Disc, Play, Pause, Maximize2, Home, Search, Library, User } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -265,28 +267,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <QueueDrawer />
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="fixed bottom-3 left-4 right-4 h-16 bg-zinc-950/70 border border-white/10 backdrop-blur-xl rounded-2xl z-50 flex items-center justify-around md:hidden select-none px-4 shadow-2xl shadow-black/80">
-        {[
-          { label: 'Home', href: '/app', icon: Home },
-          { label: 'Search', href: '/search', icon: Search },
-          { label: 'Library', href: '/library', icon: Library },
-        ].map((item) => {
-          const isActive = pathname === item.href;
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-all duration-200
-                ${isActive ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
-              style={{ color: isActive ? accentColor : undefined }}
-            >
-              <Icon className="w-5 h-5" />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+      <Suspense fallback={null}>
+        <MobileNavBar pathname={pathname} accentColor={accentColor} />
+      </Suspense>
 
       {/* Modals Container */}
       <CreatePlaylistModal />
@@ -316,3 +299,35 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+function MobileNavBar({ pathname, accentColor }: { pathname: string; accentColor: string }) {
+  const searchParams = useSearchParams();
+  const tab = searchParams.get('tab') || '';
+
+  return (
+    <nav className="fixed bottom-3 left-4 right-4 h-16 bg-zinc-950/70 border border-white/10 backdrop-blur-xl rounded-2xl z-50 flex items-center justify-around md:hidden select-none px-4 shadow-2xl shadow-black/80">
+      {[
+        { label: 'Home', href: '/app', icon: Home, active: pathname === '/app' },
+        { label: 'Search', href: '/search', icon: Search, active: pathname === '/search' },
+        { label: 'Library', href: '/library?tab=likes', icon: Library, active: pathname === '/library' && (tab === 'likes' || !tab) },
+        { label: 'Playlists', href: '/library?tab=playlists', icon: Disc, active: pathname === '/library' && tab === 'playlists' },
+        { label: 'Profile', href: '/library?tab=profile', icon: User, active: pathname === '/library' && tab === 'profile' },
+      ].map((item) => {
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-all duration-200
+              ${item.active ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            style={{ color: item.active ? accentColor : undefined }}
+          >
+            <Icon className="w-5.5 h-5.5" />
+            <span>{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
