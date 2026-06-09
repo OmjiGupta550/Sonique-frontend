@@ -45,6 +45,19 @@ export function FullscreenPlayer() {
   const { toggleLike, isLiked, accentColor, setAccentColor, setShowSleepTimerModal, playVideo, closeVideo, activeVideoId } = useUIStore();
   const [activeTab, setActiveTab] = useState<'player' | 'lyrics' | 'queue'>('player');
 
+  // SSR-safe responsive hook: auto-set active tab to lyrics on desktop screens
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => {
+      if (window.innerWidth >= 768 && activeTab === 'player') {
+        setActiveTab('lyrics');
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [activeTab]);
+
   const activeQueue = isShuffle ? shuffledQueue : queue;
   const currentTrack = activeQueue[currentIndex];
 
@@ -151,8 +164,8 @@ export function FullscreenPlayer() {
             </button>
             <button
               onClick={() => setActiveTab('lyrics')}
-              className={`py-1 border-b-2 transition ${activeTab === 'lyrics' || activeTab === 'player' ? 'text-white' : 'text-zinc-500 hover:text-white border-transparent'}`}
-              style={{ borderBottomColor: activeTab === 'lyrics' || activeTab === 'player' ? accentColor : 'transparent' }}
+              className={`py-1 border-b-2 transition ${activeTab === 'lyrics' ? 'text-white' : 'text-zinc-500 hover:text-white border-transparent'}`}
+              style={{ borderBottomColor: activeTab === 'lyrics' ? accentColor : 'transparent' }}
             >
               Lyrics
             </button>
@@ -183,14 +196,14 @@ export function FullscreenPlayer() {
         </header>
 
         {/* Core Layout Split */}
-        <main className="flex-1 min-h-0 flex flex-col md:flex-row p-6 md:p-12 overflow-hidden gap-8 md:gap-16 z-10 max-w-7xl mx-auto w-full items-center pointer-events-auto">
+        <main className="flex-1 min-h-0 flex flex-col md:flex-row p-4 sm:p-6 md:p-12 overflow-hidden gap-4 md:gap-16 z-10 max-w-7xl mx-auto w-full items-center pointer-events-auto">
           
           {/* Left Panel: Cover Art & Controls */}
           <div className={`h-full max-h-full flex flex-col justify-between items-center max-w-md mx-auto w-full py-2 transition-all duration-300 ${activeTab !== 'player' ? 'hidden md:flex' : 'flex'}`}>
             
             {/* Artwork Container - Reverted back to original dimensions as requested */}
             <div 
-              className={`h-[25vh] sm:h-[30vh] md:h-[32vh] lg:h-[36vh] xl:h-[40vh] ${isVideoMode ? 'aspect-video w-full max-w-lg bg-transparent' : 'aspect-square bg-zinc-900'} rounded-2xl border border-white/10 shadow-2xl relative group overflow-hidden mb-3 transition-all duration-700 hover:scale-[1.02] shrink cursor-pointer`}
+              className={`h-[22vh] sm:h-[30vh] md:h-[32vh] lg:h-[36vh] xl:h-[40vh] ${isVideoMode ? 'aspect-video w-full max-w-lg bg-transparent' : 'aspect-square bg-zinc-900'} rounded-2xl border border-white/10 shadow-2xl relative group overflow-hidden mb-3 transition-all duration-700 hover:scale-[1.02] shrink cursor-pointer`}
               style={{ 
                 boxShadow: `0 20px 50px -15px ${accentColor}40`,
               }}

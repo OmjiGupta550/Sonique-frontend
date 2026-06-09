@@ -50,14 +50,14 @@ export function TrackRow({ track, index, playlistId, onRemoveFromPlaylist, showI
 
   return (
     <div 
-      className={`group flex items-center justify-between p-2.5 rounded-xl transition duration-200 border border-transparent select-none
+      className={`group flex items-center justify-between p-1.5 md:p-2.5 rounded-xl transition duration-200 border border-transparent select-none
         ${isCurrent ? 'bg-white/5 border-white/5 shadow-inner' : 'hover:bg-white/5'}`}
     >
       {/* Play/Index & Metadata */}
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <div className="w-8 h-8 flex items-center justify-center shrink-0 relative">
+      <div className="flex items-center gap-2.5 md:gap-3 flex-1 min-w-0 cursor-pointer" onClick={handlePlayClick}>
+        <div className="w-8 h-8 hidden md:flex items-center justify-center shrink-0 relative">
           {isCurrent && isPlaying ? (
-            <button onClick={handlePlayClick} className="text-white">
+            <button onClick={(e) => { e.stopPropagation(); handlePlayClick(); }} className="text-white">
               <span className="flex items-end gap-0.5 h-3">
                 <span className="w-0.75 bg-current animate-bounce-custom" style={{ animationDelay: '0.1s', backgroundColor: accentColor }} />
                 <span className="w-0.75 bg-current animate-bounce-custom" style={{ animationDelay: '0.3s', backgroundColor: accentColor }} />
@@ -72,7 +72,7 @@ export function TrackRow({ track, index, playlistId, onRemoveFromPlaylist, showI
                 </span>
               )}
               <button 
-                onClick={handlePlayClick} 
+                onClick={(e) => { e.stopPropagation(); handlePlayClick(); }} 
                 className={`absolute inset-0 flex items-center justify-center text-white bg-zinc-950/80 rounded-lg shadow-md transition duration-150
                   ${isCurrent ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
               >
@@ -83,7 +83,7 @@ export function TrackRow({ track, index, playlistId, onRemoveFromPlaylist, showI
         </div>
 
         {/* Cover Art */}
-        <div className="w-14 h-14 rounded-lg bg-zinc-800 overflow-hidden shrink-0 border border-white/5 shadow-md">
+        <div className="w-11 h-11 md:w-14 md:h-14 rounded-lg bg-zinc-800 overflow-hidden shrink-0 border border-white/5 shadow-md">
           <img 
             src={coverSrc} 
             alt="" 
@@ -107,7 +107,7 @@ export function TrackRow({ track, index, playlistId, onRemoveFromPlaylist, showI
           >
             {track.title}
           </p>
-          <p className="text-xs text-zinc-400 truncate">{track.artist}</p>
+          <p className="text-xs text-zinc-400 truncate mt-0.5">{track.artist}</p>
         </div>
       </div>
 

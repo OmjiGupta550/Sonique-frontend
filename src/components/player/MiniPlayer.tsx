@@ -70,7 +70,7 @@ export function MiniPlayer() {
   const remainingTime = Math.max(0, duration - currentTime);
 
   return (
-    <div className="fixed bottom-16 md:bottom-0 left-0 right-0 h-20 bg-zinc-950/90 border-t border-white/5 backdrop-blur-2xl z-50 select-none">
+    <div className="fixed bottom-[84px] md:bottom-0 left-0 right-0 h-16 md:h-20 bg-transparent md:bg-zinc-950/90 md:border-t md:border-white/5 md:backdrop-blur-2xl z-50 select-none">
       
       {/* Desktop Layout (md:flex) */}
       <div className="hidden md:flex items-center justify-between px-4 h-full">
@@ -298,10 +298,13 @@ export function MiniPlayer() {
         </div>
       </div>
 
-      {/* Mobile Layout (md:hidden) */}
-      <div className="flex md:hidden items-center justify-between px-4 h-full w-full relative">
-        {/* Progress bar overlay at the very top of the bar */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-zinc-800">
+      {/* Mobile Layout (md:hidden) - Floating Pill */}
+      <div 
+        className="flex md:hidden items-center justify-between px-4 h-full mx-4 rounded-2xl bg-zinc-900/90 border border-white/10 shadow-lg backdrop-blur-xl w-[calc(100vw-2rem)] relative overflow-hidden cursor-pointer"
+        onClick={() => setShowFullscreenPlayer(true)}
+      >
+        {/* Progress bar overlay at the very bottom of the floating card */}
+        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-zinc-800/50">
           <div 
             className="h-full transition-all duration-100" 
             style={{ width: `${progress}%`, backgroundColor: accentColor }} 
@@ -309,17 +312,15 @@ export function MiniPlayer() {
         </div>
 
         {/* Left section: Artwork + Title & Artist */}
-        <div 
-          className="flex items-center gap-3 min-w-0 flex-1 mr-4 cursor-pointer"
-          onClick={() => setShowFullscreenPlayer(true)}
-        >
+        <div className="flex items-center gap-3 min-w-0 flex-1 mr-4">
           {isVideoMode && !showFullscreenPlayer && !activeVideoId ? (
             <div className="w-12 h-8 rounded bg-zinc-950 overflow-hidden shrink-0 border border-white/10 relative">
               <div id="youtube-player-placeholder" className="w-full h-full bg-transparent" />
-              <div className="absolute inset-0 z-10" onClick={(e) => { e.stopPropagation(); togglePlay(); }} />
+              {/* Overlay inside video placeholder to capture maximize clicks */}
+              <div className="absolute inset-0 z-10" />
             </div>
           ) : (
-            <div className="w-10 h-10 rounded bg-zinc-900 overflow-hidden border border-white/10 shrink-0 relative">
+            <div className="w-10 h-10 rounded-lg bg-zinc-950 overflow-hidden border border-white/10 shrink-0 relative shadow-sm">
               <img 
                 src={coverSrc} 
                 alt={track.title} 
@@ -341,51 +342,37 @@ export function MiniPlayer() {
           </div>
         </div>
 
-        {/* Right section: Play/Pause, TV (optional), Heart/Maximize */}
-        <div className="flex items-center gap-4 shrink-0">
-          <button onClick={() => toggleLike(track)} className="text-zinc-400 active:scale-90 transition">
+        {/* Right section: Like, Play/Pause, Next */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button 
+            onClick={(e) => { e.stopPropagation(); toggleLike(track); }}
+            className="p-2 text-zinc-400 active:scale-90 transition shrink-0"
+            title="Like"
+          >
             <Heart className={`w-5 h-5 ${isLiked(track.id) ? 'fill-red-500 text-red-500' : ''}`} />
           </button>
 
-          {track.hasVideo && (
-            <button
-              onClick={() => {
-                if (isVideoMode) {
-                  setVideoMode(false);
-                  closeVideo();
-                } else {
-                  setVideoMode(true);
-                  playVideo(track.id);
-                }
-              }}
-              className={`transition shrink-0 p-1 rounded-full ${
-                isVideoMode ? 'text-red-400 animate-pulse' : 'text-zinc-400'
-              }`}
-            >
-              <Tv className="w-4.5 h-4.5" />
-            </button>
-          )}
-
           <button 
-            onClick={togglePlay}
-            className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-zinc-950 active:scale-95 transition shrink-0"
+            onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+            className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-zinc-950 active:scale-95 transition shrink-0 shadow"
+            title={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? (
-              <Pause className="w-4 h-4 fill-zinc-950 text-zinc-950" />
+              <Pause className="w-4.5 h-4.5 fill-zinc-950 text-zinc-950" />
             ) : (
-              <Play className="w-4 h-4 fill-zinc-950 text-zinc-950 translate-x-0.5" />
+              <Play className="w-4.5 h-4.5 fill-zinc-950 text-zinc-950 translate-x-0.5" />
             )}
           </button>
           
           <button 
-            onClick={() => setShowFullscreenPlayer(true)}
-            className="text-zinc-400 active:scale-90 transition shrink-0"
+            onClick={(e) => { e.stopPropagation(); next(); }}
+            className="p-2 text-zinc-400 active:scale-90 transition shrink-0"
+            title="Next Track"
           >
-            <Maximize2 className="w-4.5 h-4.5" />
+            <SkipForward className="w-5 h-5 fill-zinc-400" />
           </button>
         </div>
       </div>
-
     </div>
   );
 }

@@ -243,7 +243,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar />
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden relative pb-36 md:pb-20">
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative pb-44 md:pb-20">
         <Header />
         
         {/* Scrollable Body Content */}
@@ -265,7 +265,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <QueueDrawer />
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-zinc-950/80 border-t border-white/5 backdrop-blur-xl z-50 flex items-center justify-around md:hidden select-none px-4">
+      <nav className="fixed bottom-3 left-4 right-4 h-16 bg-zinc-950/70 border border-white/10 backdrop-blur-xl rounded-2xl z-50 flex items-center justify-around md:hidden select-none px-4 shadow-2xl shadow-black/80">
         {[
           { label: 'Home', href: '/app', icon: Home },
           { label: 'Search', href: '/search', icon: Search },
