@@ -127,7 +127,10 @@ export default function HomePage() {
         'daily_mix',
         'trending_now',
         'new_releases',
-        'discover_new'
+        'discover_new',
+        'continue_listening',
+        'recently_played',
+        'recent_listening_based'
       ].includes(shelf.id));
 
   // Helper to convert RecTrack to PlayerTrack
