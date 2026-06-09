@@ -142,7 +142,7 @@ export function FullscreenPlayer() {
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 120 }}
-        className="fixed inset-0 z-[60] flex flex-col overflow-hidden text-white pointer-events-none"
+        className="fixed inset-0 z-[60] flex flex-col overflow-hidden text-white pointer-events-auto"
       >
         {/* Top Header */}
         <header className="h-16 sticky top-0 flex items-center justify-between px-6 z-20 border-b border-white/5 bg-zinc-950 transform-gpu pointer-events-auto">
@@ -178,7 +178,7 @@ export function FullscreenPlayer() {
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 hidden sm:flex">
             {sleepTimerActive && (
               <div className="flex items-center gap-1 bg-white/5 px-2.5 py-1 rounded-full text-xs font-semibold text-indigo-300">
                 <Clock className="w-3.5 h-3.5" />
@@ -193,13 +193,15 @@ export function FullscreenPlayer() {
               <Moon className="w-5 h-5" />
             </button>
           </div>
+          {/* Spacer to keep tabs centered on mobile */}
+          <div className="w-10 h-10 sm:hidden" />
         </header>
 
         {/* Core Layout Split */}
         <main className="flex-1 min-h-0 flex flex-col md:flex-row p-4 sm:p-6 md:p-12 overflow-hidden gap-4 md:gap-16 z-10 max-w-7xl mx-auto w-full items-center pointer-events-auto">
           
           {/* Left Panel: Cover Art & Controls */}
-          <div className={`h-full max-h-full flex flex-col justify-between items-center max-w-md mx-auto w-full py-2 transition-all duration-300 ${activeTab !== 'player' ? 'hidden md:flex' : 'flex'}`}>
+          <div className={`h-full max-h-full flex flex-col justify-between items-center max-w-md mx-auto w-full pt-2 pb-6 md:py-2 transition-all duration-300 ${activeTab !== 'player' ? 'hidden md:flex' : 'flex'}`}>
             
             {/* Artwork Container - Reverted back to original dimensions as requested */}
             <div 
@@ -242,9 +244,9 @@ export function FullscreenPlayer() {
               )}
             </div>
 
-            {/* Song Metadata - shrink-0 protected with zero absolute margin (handled by flex justify-between) */}
-            <div className="w-full text-center md:text-left flex items-center justify-between gap-4 shrink-0">
-              <div className="overflow-hidden flex-1">
+            {/* Song Metadata */}
+            <div className="w-full flex items-center justify-between gap-4 shrink-0 px-2">
+              <div className="overflow-hidden flex-1 text-left">
                 <h2 className="text-xl md:text-2xl font-bold truncate tracking-tight">{currentTrack.title}</h2>
                 <p className="text-sm md:text-md text-zinc-400 truncate mt-1">{currentTrack.artist}</p>
               </div>
@@ -292,10 +294,11 @@ export function FullscreenPlayer() {
             </div>
 
             {/* Playback Controls - shrink-0 protected with zero absolute margin (handled by flex justify-between) */}
+            {/* Playback Controls */}
             <div className="w-full flex items-center justify-between px-2 shrink-0">
               <button
                 onClick={toggleShuffle}
-                className={`p-3 rounded-full hover:bg-white/5 transition ${isShuffle ? 'text-white font-bold' : 'text-zinc-500'}`}
+                className={`p-2.5 rounded-full hover:bg-white/5 transition ${isShuffle ? 'text-white font-bold' : 'text-zinc-500'}`}
                 style={{ color: isShuffle ? accentColor : undefined }}
               >
                 <Shuffle className="w-5 h-5" />
@@ -303,33 +306,33 @@ export function FullscreenPlayer() {
 
               <button
                 onClick={previous}
-                className="p-3 rounded-full hover:bg-white/5 text-zinc-300 hover:text-white transition"
+                className="p-2.5 rounded-full hover:bg-white/5 text-zinc-300 hover:text-white transition"
               >
-                <SkipBack className="w-7 h-7 fill-current" />
+                <SkipBack className="w-6 h-6 fill-current sm:w-7 sm:h-7" />
               </button>
 
               <button
                 onClick={togglePlay}
-                className="w-16 h-16 rounded-full flex items-center justify-center text-zinc-950 transition hover:scale-105 active:scale-95 shadow-xl"
+                className="w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-zinc-950 transition hover:scale-105 active:scale-95 shadow-xl shrink-0"
                 style={{ backgroundColor: accentColor }}
               >
                 {isPlaying ? (
-                  <Pause className="w-7 h-7 fill-zinc-950 text-zinc-950" />
+                  <Pause className="w-6 h-6 fill-zinc-950 text-zinc-950 sm:w-7 sm:h-7" />
                 ) : (
-                  <Play className="w-7 h-7 fill-zinc-950 text-zinc-950 translate-x-0.5" />
+                  <Play className="w-6 h-6 fill-zinc-950 text-zinc-950 translate-x-0.5 sm:w-7 sm:h-7" />
                 )}
               </button>
 
               <button
                 onClick={next}
-                className="p-3 rounded-full hover:bg-white/5 text-zinc-300 hover:text-white transition"
+                className="p-2.5 rounded-full hover:bg-white/5 text-zinc-300 hover:text-white transition"
               >
-                <SkipForward className="w-7 h-7 fill-current" />
+                <SkipForward className="w-6 h-6 fill-current sm:w-7 sm:h-7" />
               </button>
 
               <button
                 onClick={toggleRepeat}
-                className={`p-3 rounded-full hover:bg-white/5 transition ${repeatMode !== 'none' ? 'text-white' : 'text-zinc-500'}`}
+                className={`p-2.5 rounded-full hover:bg-white/5 transition ${repeatMode !== 'none' ? 'text-white' : 'text-zinc-500'}`}
                 style={{ color: repeatMode !== 'none' ? accentColor : undefined }}
               >
                 <Repeat className="w-5 h-5" />
@@ -385,7 +388,7 @@ export function FullscreenPlayer() {
 
         {/* Compact bottom control bar for mobile when in lyrics or queue tab */}
         {activeTab !== 'player' && (
-          <div className="md:hidden border-t border-white/5 bg-zinc-950/80 backdrop-blur-md p-4 flex items-center justify-between z-20 pointer-events-auto">
+          <div className="md:hidden border-t border-white/5 bg-zinc-950/80 backdrop-blur-md px-4 pt-4 pb-6 flex items-center justify-between z-20 pointer-events-auto">
             <div className="flex items-center gap-3 overflow-hidden flex-1 mr-4">
               <img
                 src={currentTrack.coverUrl || ''}
