@@ -91,12 +91,6 @@ export default function LandingPage() {
         <div className="flex items-center gap-6">
           <button 
             onClick={() => router.push('/app')}
-            className="text-sm font-semibold text-zinc-400 hover:text-white transition duration-200"
-          >
-            Web App
-          </button>
-          <button 
-            onClick={() => router.push('/app')}
             className="text-xs font-semibold bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white px-4 py-2 rounded-full transition duration-300 shadow-lg shadow-purple-500/20 hover:scale-105 active:scale-95"
           >
             Launch Sonique
