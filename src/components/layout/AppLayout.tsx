@@ -301,17 +301,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 }
 
 function MobileNavBar({ pathname, accentColor }: { pathname: string; accentColor: string }) {
-  const searchParams = useSearchParams();
-  const tab = searchParams.get('tab') || '';
-
   return (
     <nav className="fixed bottom-3 left-4 right-4 h-16 bg-zinc-950/70 border border-white/10 backdrop-blur-xl rounded-2xl z-50 flex items-center justify-around md:hidden select-none px-4 shadow-2xl shadow-black/80">
       {[
         { label: 'Home', href: '/app', icon: Home, active: pathname === '/app' },
         { label: 'Search', href: '/search', icon: Search, active: pathname === '/search' },
-        { label: 'Library', href: '/library?tab=likes', icon: Library, active: pathname === '/library' && (tab === 'likes' || !tab) },
-        { label: 'Playlists', href: '/library?tab=playlists', icon: Disc, active: pathname === '/library' && tab === 'playlists' },
-        { label: 'Profile', href: '/library?tab=profile', icon: User, active: pathname === '/library' && tab === 'profile' },
+        { label: 'Library', href: '/library?tab=likes', icon: Library, active: pathname === '/library' },
       ].map((item) => {
         const Icon = item.icon;
         return (

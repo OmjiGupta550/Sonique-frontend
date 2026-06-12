@@ -297,26 +297,11 @@ export default function HomePage() {
       {/* Spotify-Style Dashboard Greeting & Quick Grid for Mobile */}
       {isMobile ? (
         <div className="space-y-4 md:hidden">
-          {/* Stitch-Style Profile Header */}
-          <div className="flex items-center gap-4 bg-zinc-900/40 p-4 rounded-2xl border border-white/5 shadow-md">
-            {/* Circular User Badge */}
-            <div 
-              className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-black text-zinc-950 shrink-0 shadow-lg transition-transform duration-300 hover:scale-105"
-              style={{ backgroundColor: accentColor }}
-            >
-              {profile 
-                ? (profile.display_name ? profile.display_name[0] : profile.email[0]).toUpperCase()
-                : 'G'}
-            </div>
-            {/* User Name and Greeting */}
-            <div className="text-left overflow-hidden">
-              <h1 className="text-lg font-black text-white truncate leading-tight">
-                {profile ? (profile.display_name || profile.email.split('@')[0]) : 'Guest User'}
-              </h1>
-              <p className="text-xs text-zinc-400 mt-0.5 font-medium">
-                {getGreeting()}
-              </p>
-            </div>
+          {/* Simple Mobile Greeting Header */}
+          <div className="flex items-center justify-between py-1">
+            <h1 className="text-2xl font-black text-white">
+              {getGreeting()}
+            </h1>
           </div>
 
           

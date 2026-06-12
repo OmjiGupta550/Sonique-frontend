@@ -41,6 +41,19 @@ export function Header() {
         </button>
       </div>
 
+      {/* Mobile Logo */}
+      <Link href="/app" className="flex md:hidden items-center gap-2 hover:opacity-85 transition select-none shrink-0">
+        <div 
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-black text-sm"
+          style={{ backgroundColor: accentColor }}
+        >
+          S
+        </div>
+        <span className="text-base font-bold tracking-tight text-white">
+          Sonique
+        </span>
+      </Link>
+
 
       {/* Center Search Input */}
       {pathname !== '/search' ? (
@@ -79,7 +92,7 @@ export function Header() {
                 {profile.email[0].toUpperCase()}
               </div>
             )}
-            <span className="text-sm font-medium text-zinc-200 hidden sm:inline px-1">
+            <span className="text-sm font-medium text-zinc-200 px-1 max-w-[95px] md:max-w-none truncate">
               {profile.display_name || profile.email.split('@')[0]}
             </span>
           </button>
