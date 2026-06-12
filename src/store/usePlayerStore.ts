@@ -195,7 +195,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => {
         set({ shuffledQueue: shuffled, currentIndex: 0 });
       }
 
-      const streamUrl = `${API_BASE}/api/stream/${track.id}?redirect=true&has_video=${shouldPlayVideo}&title=${encodeURIComponent(track.title)}&artist=${encodeURIComponent(track.artist)}`;
+      const streamUrl = `${API_BASE}/stream/${track.id}?redirect=true&has_video=${shouldPlayVideo}&title=${encodeURIComponent(track.title)}&artist=${encodeURIComponent(track.artist)}`;
       currentAudio.src = streamUrl;
       currentAudio.load();
       if (preservedTime > 0) {

@@ -294,53 +294,41 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6 md:space-y-10 pb-8 select-none">
-      {/* Spotify-Style Dashboard Greeting for Mobile */}
-      {isMobile ? (
-        <div className="space-y-4 md:hidden">
-          {/* Simple Mobile Greeting Header */}
-          <div className="flex items-center justify-between py-1">
-            <h1 className="text-2xl font-black text-white">
-              {getGreeting()}
-            </h1>
-          </div>
+      {/* Shared Greeting Banner Card */}
+      <section className="relative rounded-2xl bg-gradient-to-r from-zinc-900/60 to-zinc-950/20 border border-white/5 p-6 md:p-8 overflow-hidden shadow-xl">
+        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+          <div className="w-40 h-40 font-black text-8xl flex items-center justify-center select-none" style={{ color: accentColor }}>S</div>
         </div>
-      ) : (
-        /* Original Desktop/Tablet Hero Banner */
-        <section className="relative rounded-2xl bg-gradient-to-r from-zinc-900/60 to-zinc-950/20 border border-white/5 p-6 md:p-8 overflow-hidden shadow-xl">
-          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-            <div className="w-40 h-40 font-black text-8xl flex items-center justify-center select-none" style={{ color: accentColor }}>S</div>
-          </div>
-          <div className="relative z-10 space-y-2">
-            {profile ? (
-              <>
-                <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400 uppercase tracking-widest">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span>AI recommendation engine active</span>
-                </div>
-                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">
-                  {getGreeting()}
-                </h1>
-                <p className="text-zinc-400 text-sm md:text-base max-w-lg">
-                  Your personalized feed is learning and updating in real-time based on your listens, skips, and playlist preferences.
-                </p>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400 uppercase tracking-widest">
-                  <Sparkles className="w-4 h-4 text-violet-400 animate-pulse" />
-                  <span>Welcome to Sonique Music</span>
-                </div>
-                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">
-                  Discover Your Perfect Sound
-                </h1>
-                <p className="text-zinc-400 text-sm md:text-base max-w-lg">
-                  Explore handpicked tracks, popular albums, and trending mixes. <Link href="/login" className="font-bold underline hover:text-white transition" style={{ color: accentColor }}>Sign up or Log in</Link> to start tracking your mood and unlock personalized mixes tailored to your vibe!
-                </p>
-              </>
-            )}
-          </div>
-        </section>
-      )}
+        <div className="relative z-10 space-y-2">
+          {profile ? (
+            <>
+              <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400 uppercase tracking-widest">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <span>AI recommendation engine active</span>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">
+                {getGreeting()}
+              </h1>
+              <p className="text-zinc-400 text-sm md:text-base max-w-lg">
+                Your personalized feed is learning and updating in real-time based on your listens, skips, and playlist preferences.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400 uppercase tracking-widest">
+                <Sparkles className="w-4 h-4 text-violet-400 animate-pulse" />
+                <span>Welcome to Sonique Music</span>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">
+                Discover Your Perfect Sound
+              </h1>
+              <p className="text-zinc-400 text-sm md:text-base max-w-lg">
+                Explore handpicked tracks, popular albums, and trending mixes. <Link href="/login" className="font-bold underline hover:text-white transition" style={{ color: accentColor }}>Sign up or Log in</Link> to start tracking your vibe!
+              </p>
+            </>
+          )}
+        </div>
+      </section>
 
       {/* Render the recommendation shelves with horizontal scrolling */}
       {shelvesList.slice(0, profile ? visibleShelvesCount : shelvesList.length).map((shelf) => {
