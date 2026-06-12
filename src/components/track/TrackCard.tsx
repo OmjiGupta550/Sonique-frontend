@@ -40,7 +40,7 @@ export function TrackCard({ track }: TrackCardProps) {
   return (
     <div 
       onClick={handlePlayClick}
-      className="group relative bg-zinc-900/40 hover:bg-zinc-800/40 p-4 rounded-xl border border-white/5 transition-all duration-300 cursor-pointer flex flex-col gap-3 shadow-md select-none hover:-translate-y-1 hover:shadow-xl hover:border-white/10"
+      className="group relative bg-zinc-900/40 hover:bg-zinc-800/40 p-3 md:p-4 rounded-xl border border-white/5 transition-all duration-300 cursor-pointer flex flex-col gap-2 md:gap-3 shadow-md select-none hover:-translate-y-1 hover:shadow-xl hover:border-white/10"
     >
       {/* Artwork Box */}
       <div className="relative aspect-square w-full rounded-lg bg-zinc-800 overflow-hidden shadow-inner border border-white/5">
