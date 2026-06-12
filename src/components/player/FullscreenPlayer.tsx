@@ -250,7 +250,7 @@ export function FullscreenPlayer() {
                 <h2 className="text-xl md:text-2xl font-bold truncate tracking-tight">{currentTrack.title}</h2>
                 <p className="text-sm md:text-md text-zinc-400 truncate mt-1">{currentTrack.artist}</p>
               </div>
-              <div className="flex items-center gap-1 shrink-0 hidden md:flex">
+              <div className="flex items-center gap-1 shrink-0">
                 {(isVideoMode || currentTrack.hasVideo) && (
                   <button
                     onClick={() => {
@@ -295,10 +295,10 @@ export function FullscreenPlayer() {
 
             {/* Playback Controls - shrink-0 protected with zero absolute margin (handled by flex justify-between) */}
             {/* Playback Controls */}
-            <div className="w-full flex items-center justify-around px-2 shrink-0 md:justify-between">
+            <div className="w-full flex items-center justify-between px-2 shrink-0">
               <button
                 onClick={toggleShuffle}
-                className={`p-2.5 rounded-full hover:bg-white/5 transition hidden md:block ${isShuffle ? 'text-white font-bold' : 'text-zinc-500'}`}
+                className={`p-2.5 rounded-full hover:bg-white/5 transition ${isShuffle ? 'text-white font-bold' : 'text-zinc-500'}`}
                 style={{ color: isShuffle ? accentColor : undefined }}
               >
                 <Shuffle className="w-5 h-5" />
@@ -306,17 +306,9 @@ export function FullscreenPlayer() {
 
               <button
                 onClick={previous}
-                className="p-2.5 rounded-full hover:bg-white/5 text-zinc-300 hover:text-white transition hidden md:block"
+                className="p-2.5 rounded-full hover:bg-white/5 text-zinc-300 hover:text-white transition"
               >
                 <SkipBack className="w-6 h-6 fill-current sm:w-7 sm:h-7" />
-              </button>
-
-              {/* Mobile Only Heart (Like) button */}
-              <button
-                onClick={() => toggleLike(currentTrack)}
-                className="p-3 rounded-full hover:bg-white/5 text-zinc-400 hover:text-white transition md:hidden"
-              >
-                <Heart className={`w-7 h-7 ${isLiked(currentTrack.id) ? 'fill-red-500 text-red-500' : ''}`} />
               </button>
 
               <button
@@ -331,37 +323,16 @@ export function FullscreenPlayer() {
                 )}
               </button>
 
-              {/* Mobile Only TV (Video) button */}
-              {(isVideoMode || currentTrack.hasVideo) && (
-                <button
-                  onClick={() => {
-                    if (isVideoMode) {
-                      setVideoMode(false);
-                      closeVideo();
-                    } else {
-                      setVideoMode(true);
-                      playVideo(currentTrack.id);
-                    }
-                  }}
-                  className={`p-3 rounded-full hover:bg-white/5 transition md:hidden ${
-                    isVideoMode ? 'text-red-400 bg-red-500/10 animate-pulse' : 'text-zinc-400 hover:text-red-400'
-                  }`}
-                  title={isVideoMode ? "Watch Audio Only" : "Watch Video"}
-                >
-                  <Tv className="w-7 h-7" />
-                </button>
-              )}
-
               <button
                 onClick={next}
-                className="p-2.5 rounded-full hover:bg-white/5 text-zinc-300 hover:text-white transition hidden md:block"
+                className="p-2.5 rounded-full hover:bg-white/5 text-zinc-300 hover:text-white transition"
               >
                 <SkipForward className="w-6 h-6 fill-current sm:w-7 sm:h-7" />
               </button>
 
               <button
                 onClick={toggleRepeat}
-                className={`p-2.5 rounded-full hover:bg-white/5 transition hidden md:block ${repeatMode !== 'none' ? 'text-white' : 'text-zinc-500'}`}
+                className={`p-2.5 rounded-full hover:bg-white/5 transition ${repeatMode !== 'none' ? 'text-white' : 'text-zinc-500'}`}
                 style={{ color: repeatMode !== 'none' ? accentColor : undefined }}
               >
                 <Repeat className="w-5 h-5" />
@@ -371,7 +342,7 @@ export function FullscreenPlayer() {
           </div>
 
           {/* Right Panel: Sliding Lyrics or Queue content (Hidden on mobile when in Player mode) */}
-          <div className={`flex-1 min-w-0 h-full overflow-hidden flex flex-col justify-center transition-all duration-300 pt-4 ${activeTab === 'player' ? 'hidden md:flex' : 'flex'}`}>
+          <div className={`flex-1 min-w-0 w-full md:w-auto h-full overflow-hidden flex flex-col justify-center transition-all duration-300 pt-4 ${activeTab === 'player' ? 'hidden md:flex' : 'flex'}`}>
             
             {activeTab === 'queue' ? (
               <div className="h-full overflow-y-auto overscroll-contain pr-2 queue-scrollbar py-4 flex flex-col gap-2">
@@ -407,7 +378,7 @@ export function FullscreenPlayer() {
                           }}
                         />
                       </div>
-                      <div className="overflow-hidden flex-1">
+                      <div className="overflow-hidden flex-1 text-left">
                         <p className={`text-sm font-semibold truncate ${isCurrent ? 'text-white' : 'text-zinc-300'}`} style={{ color: isCurrent ? accentColor : undefined }}>
                           {track.title}
                         </p>
