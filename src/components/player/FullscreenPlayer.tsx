@@ -123,6 +123,7 @@ export function FullscreenPlayer() {
     <AnimatePresence>
       {/* Widescreen Background Panel (z-[58]) */}
       <motion.div
+        key="fullscreen-player-bg"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -138,6 +139,7 @@ export function FullscreenPlayer() {
 
       {/* Content Panel (z-[60]) */}
       <motion.div
+        key="fullscreen-player-content"
         initial={{ y: '100%' }}
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
