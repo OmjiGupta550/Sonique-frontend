@@ -222,59 +222,58 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener('click', handleFirstClick);
   }, [initAudio]);
 
-  if (isLandingPage) {
-    return (
-      <div className="min-h-screen w-screen bg-[#050505] text-zinc-100 overflow-x-hidden selection:bg-purple-500/30 selection:text-purple-200">
-        {children}
-      </div>
-    );
-  }
-
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 font-sans antialiased text-zinc-200">
-      
-      {/* Background radial highlight */}
-      <div 
-        className="absolute top-0 right-0 w-[40vw] h-[40vw] opacity-10 rounded-full blur-[100px] pointer-events-none select-none transition-all duration-1000"
-        style={{
-          background: `radial-gradient(circle, ${accentColor} 0%, rgba(9, 9, 11, 0) 70%)`
-        }}
-      />
+    <div className="min-h-screen w-screen bg-zinc-950 text-zinc-200 overflow-hidden font-sans antialiased">
+      {isLandingPage ? (
+        <div className="min-h-screen w-screen bg-[#050505] text-zinc-100 overflow-x-hidden selection:bg-purple-500/30 selection:text-purple-200">
+          {children}
+        </div>
+      ) : (
+        <div className="flex h-screen w-screen overflow-hidden bg-zinc-950 font-sans antialiased text-zinc-200">
+          {/* Background radial highlight */}
+          <div 
+            className="absolute top-0 right-0 w-[40vw] h-[40vw] opacity-10 rounded-full blur-[100px] pointer-events-none select-none transition-all duration-1000"
+            style={{
+              background: `radial-gradient(circle, ${accentColor} 0%, rgba(9, 9, 11, 0) 70%)`
+            }}
+          />
 
-      {/* Spotify-style Sidebar */}
-      <Sidebar />
+          {/* Spotify-style Sidebar */}
+          <Sidebar />
 
-      {/* Main Container */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden relative pb-44 md:pb-20">
-        <Header />
-        
-        {/* Scrollable Body Content */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8 scrollbar-thin scrollbar-thumb-zinc-800">
-          {isLoadingData ? (
-            <div className="flex flex-col items-center justify-center h-full text-zinc-500">
-              <Disc className="w-8 h-8 animate-spin-slow mb-4" style={{ color: accentColor }} />
-              <p className="text-sm font-medium">Syncing database data...</p>
-            </div>
-          ) : (
-            children
-          )}
-        </main>
-      </div>
+          {/* Main Container */}
+          <div className="flex-1 flex flex-col h-full overflow-hidden relative pb-44 md:pb-20">
+            <Header />
+            
+            {/* Scrollable Body Content */}
+            <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8 scrollbar-thin scrollbar-thumb-zinc-800">
+              {isLoadingData ? (
+                <div className="flex flex-col items-center justify-center h-full text-zinc-500">
+                  <Disc className="w-8 h-8 animate-spin-slow mb-4" style={{ color: accentColor }} />
+                  <p className="text-sm font-medium">Syncing database data...</p>
+                </div>
+              ) : (
+                children
+              )}
+            </main>
+          </div>
 
-      {/* Player Components */}
-      <MiniPlayer />
-      <FullscreenPlayer />
-      <QueueDrawer />
+          {/* Player Components */}
+          <MiniPlayer />
+          <FullscreenPlayer />
+          <QueueDrawer />
 
-      {/* Mobile Bottom Navigation Bar */}
-      <Suspense fallback={null}>
-        <MobileNavBar pathname={pathname} accentColor={accentColor} />
-      </Suspense>
+          {/* Mobile Bottom Navigation Bar */}
+          <Suspense fallback={null}>
+            <MobileNavBar pathname={pathname} accentColor={accentColor} />
+          </Suspense>
 
-      {/* Modals Container */}
-      <CreatePlaylistModal />
-      <SleepTimerModal />
-      <VideoPlayerModal />
+          {/* Modals Container */}
+          <CreatePlaylistModal />
+          <SleepTimerModal />
+          <VideoPlayerModal />
+        </div>
+      )}
 
       {/* Persistent YouTube Player Container to prevent Stacking Context Sandwich bugs */}
       <div 
