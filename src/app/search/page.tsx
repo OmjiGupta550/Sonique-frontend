@@ -265,7 +265,7 @@ function SearchPageContent() {
                   <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Audio Tracks</h3>
                   <div className="flex flex-col gap-2">
                     {audioTracks.map((t, idx) => (
-                      <TrackRow key={`${t.id}-${idx}`} track={convertToPlayerTrack(t)} index={idx} />
+                      <TrackRow key={t.id} track={convertToPlayerTrack(t)} index={idx} />
                     ))}
                   </div>
                 </section>
@@ -277,7 +277,7 @@ function SearchPageContent() {
                   <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Video Tracks</h3>
                   <div className="flex flex-col gap-2">
                     {videoTracks.map((t, idx) => (
-                      <TrackRow key={`${t.id}-${idx}`} track={convertToPlayerTrack(t)} index={idx} />
+                      <TrackRow key={t.id} track={convertToPlayerTrack(t)} index={idx} />
                     ))}
                   </div>
                 </section>
