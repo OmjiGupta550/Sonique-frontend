@@ -24,7 +24,7 @@ export function Header() {
     <header className="h-16 bg-zinc-950/20 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 md:px-6 z-40 select-none">
       
       {/* Navigation Arrows */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 hidden md:flex">
         <button
           onClick={() => router.back()}
           className="p-1.5 rounded-full bg-zinc-900/60 text-zinc-400 hover:text-white transition"
@@ -40,6 +40,7 @@ export function Header() {
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
+
 
       {/* Center Search Input */}
       {pathname !== '/search' ? (
