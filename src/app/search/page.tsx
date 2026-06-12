@@ -205,7 +205,7 @@ function SearchPageContent() {
           )}
 
           {/* Trending Searches */}
-          <div className="space-y-3">
+          <div className="space-y-3 hidden md:block">
             <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Trending Searches</h3>
             <div className="grid grid-cols-2 gap-3">
               {[

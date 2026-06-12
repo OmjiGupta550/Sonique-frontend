@@ -294,7 +294,7 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6 md:space-y-10 pb-8 select-none">
-      {/* Spotify-Style Dashboard Greeting & Quick Grid for Mobile */}
+      {/* Spotify-Style Dashboard Greeting for Mobile */}
       {isMobile ? (
         <div className="space-y-4 md:hidden">
           {/* Simple Mobile Greeting Header */}
@@ -302,79 +302,6 @@ export default function HomePage() {
             <h1 className="text-2xl font-black text-white">
               {getGreeting()}
             </h1>
-          </div>
-
-          
-          <div className="grid grid-cols-2 gap-2">
-            {/* Card 1: Liked Songs */}
-            <div 
-              onClick={() => router.push('/library?tab=likes')}
-              className="flex items-center gap-2.5 bg-zinc-900/40 hover:bg-zinc-800/40 border border-white/5 rounded-lg overflow-hidden p-1.5 pr-2.5 cursor-pointer transition active:scale-[0.98]"
-            >
-              <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded flex items-center justify-center shrink-0 shadow-md">
-                <Heart className="w-5 h-5 fill-white text-white" />
-              </div>
-              <span className="text-xs font-bold text-zinc-100 truncate">Liked Songs</span>
-            </div>
-            
-            {/* Card 2: Your Playlists */}
-            <div 
-              onClick={() => router.push('/library?tab=playlists')}
-              className="flex items-center gap-2.5 bg-zinc-900/40 hover:bg-zinc-800/40 border border-white/5 rounded-lg overflow-hidden p-1.5 pr-2.5 cursor-pointer transition active:scale-[0.98]"
-            >
-              <div className="w-12 h-12 bg-zinc-800 rounded flex items-center justify-center shrink-0 shadow-md">
-                <Disc className="w-6 h-6 text-zinc-400 animate-spin-slow" />
-              </div>
-              <span className="text-xs font-bold text-zinc-100 truncate">Playlists</span>
-            </div>
-
-            {/* Card 3: Recently Played */}
-            <div 
-              onClick={() => {
-                if (localHistory.length > 0) {
-                  playPlaylist(localHistory, 0);
-                } else {
-                  router.push('/library?tab=history');
-                }
-              }}
-              className="flex items-center gap-2.5 bg-zinc-900/40 hover:bg-zinc-800/40 border border-white/5 rounded-lg overflow-hidden p-1.5 pr-2.5 cursor-pointer transition active:scale-[0.98]"
-            >
-              <div className="w-12 h-12 bg-zinc-800 rounded overflow-hidden shrink-0 shadow-md flex items-center justify-center">
-                {localHistory[0]?.coverUrl ? (
-                  <img src={localHistory[0].coverUrl} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-[10px] text-zinc-500 font-bold">🕒</span>
-                )}
-              </div>
-              <span className="text-xs font-bold text-zinc-100 truncate">Recent Play</span>
-            </div>
-
-            {/* Card 4: Curated Album - Aashiqui 2 */}
-            <div 
-              onClick={() => router.push('/album/MPREb_E4GfUXfDfhy')}
-              className="flex items-center gap-2.5 bg-zinc-900/40 hover:bg-zinc-800/40 border border-white/5 rounded-lg overflow-hidden p-1.5 pr-2.5 cursor-pointer transition active:scale-[0.98]"
-            >
-              <img src="https://yt3.googleusercontent.com/3q33amH9hzn1dO8IeAX7TMb1QtEVfvVbqd2eSCaelOXNVmfMjbpDYdqD2HSiXtNP6i5Es7oynkWU2NfOXA=w120-h120-l90-rj" className="w-12 h-12 object-cover shrink-0 rounded shadow-md" />
-              <span className="text-xs font-bold text-zinc-100 truncate">Aashiqui 2</span>
-            </div>
-
-            {/* Card 5: Curated Album - Rockstar */}
-            <div 
-              onClick={() => router.push('/album/MPREb_E9Diy6kXmlV')}
-              className="flex items-center gap-2.5 bg-zinc-900/40 hover:bg-zinc-800/40 border border-white/5 rounded-lg overflow-hidden p-1.5 pr-2.5 cursor-pointer transition active:scale-[0.98]"
-            >
-              <img src="https://yt3.googleusercontent.com/KYw74XSQwtKPbZTrHMNEBAnEMg1P1gNGwymnZwBSjstbqSE-MpigGlTIy6IZvC-ERlRkeP0c7VTiZObS=w120-h120-l90-rj" className="w-12 h-12 object-cover shrink-0 rounded shadow-md" />
-              <span className="text-xs font-bold text-zinc-100 truncate">Rockstar</span>
-            </div>
-
-            {/* Card 6: Curated Album - Kabir Singh */}
-            <div 
-              onClick={() => router.push('/album/MPREb_RcOqUyfS2Bi')}
-              className="flex items-center gap-2.5 bg-zinc-900/40 hover:bg-zinc-800/40 border border-white/5 rounded-lg overflow-hidden p-1.5 pr-2.5 cursor-pointer transition active:scale-[0.98]"
-            >
-              <img src="https://yt3.googleusercontent.com/loAKTa9XpvZzV-TORspRPC978Kk_u2l6tYlHTHm-sYfwjmKsJdShoxbmLoPKoq9eZgq-uzpoRPtqEWX09w=w120-h120-l90-rj" className="w-12 h-12 object-cover shrink-0 rounded shadow-md" />
-              <span className="text-xs font-bold text-zinc-100 truncate">Kabir Singh</span>
-            </div>
           </div>
         </div>
       ) : (
