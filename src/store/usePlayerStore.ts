@@ -3,6 +3,7 @@ import { fetchLyrics, LyricLine } from '../lib/lrclib';
 import { trackPlay, trackSkip, trackGenericAction } from '../lib/recommendations';
 import { API_BASE } from '../lib/config';
 import { createYouTubeAudioElement } from '../lib/youtubePlayer';
+import { useUIStore } from './useUIStore';
 
 
 export interface PlayerTrack {
@@ -170,6 +171,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => {
 
       const shouldPlayVideo = isVideo !== undefined ? isVideo : (track.hasVideo || false);
       set({ isVideoMode: shouldPlayVideo });
+
+      if (shouldPlayVideo) {
+        useUIStore.getState().playVideo(track.id);
+      } else {
+        useUIStore.getState().closeVideo();
+      }
 
       const isSingleTrackPlay = !fromQueue || fromQueue.length <= 1;
       let newQueue = isSameTrack ? get().queue : (isSingleTrackPlay ? [track] : (fromQueue || get().queue));

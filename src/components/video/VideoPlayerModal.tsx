@@ -20,6 +20,7 @@ export function VideoPlayerModal() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         closeVideo();
+        usePlayerStore.getState().setVideoMode(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -33,7 +34,10 @@ export function VideoPlayerModal() {
       {/* Background Overlay Backdrop (z-[58]) */}
       <div 
         className="fixed inset-0 bg-black/85 backdrop-blur-md z-[58] animate-fade-in select-none"
-        onClick={closeVideo}
+        onClick={() => {
+          closeVideo();
+          usePlayerStore.getState().setVideoMode(false);
+        }}
       />
       
       {/* Decorative Blur Background Lights (z-[58]) */}
@@ -90,7 +94,10 @@ export function VideoPlayerModal() {
 
               {/* Close Button */}
               <button
-                onClick={closeVideo}
+                onClick={() => {
+                  closeVideo();
+                  usePlayerStore.getState().setVideoMode(false);
+                }}
                 className="p-2 rounded-full bg-black/60 hover:bg-red-500/20 backdrop-blur-md border border-white/10 text-zinc-300 hover:text-red-400 transition shadow-lg hover:scale-105"
                 title="Close Player"
               >
