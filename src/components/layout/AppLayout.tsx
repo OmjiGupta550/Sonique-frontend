@@ -114,15 +114,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       }
 
       // Check if a placeholder is currently rendered and visible on screen
-      const placeholders = document.querySelectorAll("#youtube-player-placeholder");
-      let placeholder: Element | null = null;
-      for (let i = 0; i < placeholders.length; i++) {
-        const rect = placeholders[i].getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-          placeholder = placeholders[i];
-          break;
-        }
-      }
+      const placeholder = document.getElementById("youtube-player-placeholder");
       if (placeholder) {
         const rect = placeholder.getBoundingClientRect();
         

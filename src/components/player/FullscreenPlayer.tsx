@@ -342,7 +342,7 @@ export function FullscreenPlayer() {
           </div>
 
           {/* Right Panel: Sliding Lyrics or Queue content (Hidden on mobile when in Player mode) */}
-          <div className={`flex-1 min-w-0 w-full md:w-auto h-full overflow-hidden flex flex-col justify-center transition-all duration-300 pt-4 ${activeTab === 'player' ? 'hidden md:flex' : 'flex'}`}>
+          <div className={`flex-1 min-w-0 h-full overflow-hidden flex flex-col justify-center transition-all duration-300 pt-4 ${activeTab === 'player' ? 'hidden md:flex' : 'flex'}`}>
             
             {activeTab === 'queue' ? (
               <div className="h-full overflow-y-auto overscroll-contain pr-2 queue-scrollbar py-4 flex flex-col gap-2">
@@ -359,26 +359,12 @@ export function FullscreenPlayer() {
                       <span className="text-xs font-semibold text-zinc-500 w-4 text-right">
                         {idx + 1}
                       </span>
-                      <div className="w-10 h-10 rounded bg-zinc-800 overflow-hidden shrink-0 border border-white/5">
-                        <img 
-                          src={
-                            track.coverUrl && track.coverUrl.trim() !== '' && track.coverUrl !== 'null' && track.coverUrl !== 'undefined'
-                              ? track.coverUrl
-                              : (track.id && track.id.length === 11 ? `https://i.ytimg.com/vi/${track.id}/maxresdefault.jpg` : "/placeholder.png")
-                          } 
-                          alt="" 
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            if (e.currentTarget.src !== `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg` && track.id && track.id.length === 11) {
-                              e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg`;
-                            } else {
-                              e.currentTarget.src = "/placeholder.png";
-                            }
-                          }}
-                        />
+                      <div className="w-10 h-10 rounded bg-zinc-800 overflow-hidden shrink-0">
+                        {track.coverUrl && (
+                          <img src={track.coverUrl} alt="" className="w-full h-full object-cover" />
+                        )}
                       </div>
-                      <div className="overflow-hidden flex-1 text-left">
+                      <div className="overflow-hidden flex-1">
                         <p className={`text-sm font-semibold truncate ${isCurrent ? 'text-white' : 'text-zinc-300'}`} style={{ color: isCurrent ? accentColor : undefined }}>
                           {track.title}
                         </p>
