@@ -1,0 +1,239 @@
+// Redirects all music queries to our local Python Flask YouTube Music backend on port 5000.
+// Keeps standard interfaces unchanged for complete backward compatibility.
+import albumCoversMapping from "./album_covers_mapping.json";
+import { API_URL as API_ROOT } from "./config";
+const mapping = albumCoversMapping;
+
+export function getHighResThumbnailUrl(url) {
+  if (!url) return null;
+  if (url.includes("googleusercontent.com") || url.includes("ggpht.com")) {
+    let newUrl = url.replace(/=w\d+-h\d+/, "=w500-h500");
+    newUrl = newUrl.replace(/=s\d+-c/, "=s500-c");
+    return newUrl;
+  }
+  if (url.includes("i.ytimg.com") || url.includes("img.youtube.com")) {
+    return url.replace(
+      /\/(default|hqdefault|mqdefault|sddefault)\.jpg/,
+      "/maxresdefault.jpg",
+    );
+  }
+  return url;
+}
+
+export async function searchSaavnSongs(query, limit = 50) {
+  if (!query) return [];
+
+  try {
+    const res = await fetch(
+      `${API_ROOT}/api/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+      {
+        signal: AbortSignal.timeout(20000),
+      },
+    );
+    if (!res.ok) return [];
+
+    const json = await res.json();
+    const songs = json.songs || [];
+
+    return songs.map((s) => ({
+      id: s.id,
+      title: s.title,
+      artist: s.artist,
+      coverUrl: getHighResThumbnailUrl(mapping[s.id] || s.thumbnail || null),
+      duration: s.duration,
+      sourceUrl: `${API_ROOT}/api/stream/${s.id}?redirect=true`,
+      hasVideo: s.hasVideo,
+    }));
+  } catch (err) {
+    console.error("Error searching YouTube Music API:", err);
+    return [];
+  }
+}
+
+export async function fetchSaavnPlaylist(playlistId) {
+  try {
+    const res = await fetch(`${API_ROOT}/api/playlist/${playlistId}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const coverUrl =
+      json.thumbnails && json.thumbnails.length > 0
+        ? json.thumbnails[json.thumbnails.length - 1]?.url
+        : json.tracks && json.tracks[0]?.videoId
+          ? `https://img.youtube.com/vi/${json.tracks[0].videoId}/0.jpg`
+          : null;
+    const tracks = (json.tracks || []).map((t) => {
+      const trackId = t.videoId;
+      const trackCover = getHighResThumbnailUrl(
+        mapping[trackId] ||
+          (t.thumbnails && t.thumbnails.length > 0
+            ? t.thumbnails[t.thumbnails.length - 1]?.url
+            : coverUrl ||
+              (trackId ? `https://img.youtube.com/vi/${trackId}/0.jpg` : null)),
+      );
+      return {
+        id: trackId,
+        title: t.title,
+        artist: (t.artists || []).map((a) => a.name).join(", "),
+        coverUrl: trackCover,
+        duration: t.duration_seconds || 180,
+        sourceUrl: `${API_ROOT}/api/stream/${trackId}?redirect=true`,
+      };
+    });
+
+    return {
+      id: playlistId,
+      name: json.title,
+      description: json.description || null,
+      coverUrl,
+      songCount: json.trackCount || tracks.length,
+      tracks,
+    };
+  } catch (err) {
+    console.error("Error fetching playlist details:", err);
+    return null;
+  }
+}
+
+export async function fetchSaavnAlbum(albumId) {
+  try {
+    const res = await fetch(`${API_ROOT}/api/album/${albumId}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const coverUrl =
+      json.thumbnails && json.thumbnails.length > 0
+        ? json.thumbnails[json.thumbnails.length - 1]?.url
+        : json.tracks && json.tracks[0]?.videoId
+          ? `https://img.youtube.com/vi/${json.tracks[0].videoId}/0.jpg`
+          : null;
+
+    const tracks = (json.tracks || []).map((t) => {
+      const trackId = t.videoId;
+      const trackCover = getHighResThumbnailUrl(
+        mapping[trackId] ||
+          (t.thumbnails && t.thumbnails.length > 0
+            ? t.thumbnails[t.thumbnails.length - 1]?.url
+            : coverUrl ||
+              (trackId ? `https://img.youtube.com/vi/${trackId}/0.jpg` : null)),
+      );
+      return {
+        id: trackId,
+        title: t.title,
+        artist: (t.artists || []).map((a) => a.name).join(", "),
+        coverUrl: trackCover,
+        duration: t.duration_seconds || 180,
+        sourceUrl: `${API_ROOT}/api/stream/${trackId}?redirect=true`,
+      };
+    });
+
+    return {
+      id: albumId,
+      name: json.title,
+      description:
+        json.description ||
+        (json.year ? `${json.year} Album` : "Album compilation"),
+      coverUrl,
+      songCount: json.trackCount || tracks.length,
+      tracks,
+    };
+  } catch (err) {
+    console.error("Error fetching album details:", err);
+    return null;
+  }
+}
+
+export async function fetchSaavnArtist(artistId) {
+  try {
+    const res = await fetch(`${API_ROOT}/api/artist/${artistId}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const avatarUrl = json.thumbnails
+      ? json.thumbnails[json.thumbnails.length - 1]?.url
+      : null;
+
+    // Parse subscribers string to approximate integer count
+    let followers = 1000000;
+    if (json.subscribers) {
+      const m = json.subscribers.match(/([\d\.]+)\s*([MKmk]?)/);
+      if (m) {
+        const val = parseFloat(m[1]);
+        const unit = m[2].toLowerCase();
+        if (unit === "m") followers = Math.floor(val * 1000000);
+        else if (unit === "k") followers = Math.floor(val * 1000);
+        else followers = Math.floor(val);
+      }
+    }
+
+    const songsList = (json.songs ? json.songs.results : json.tracks) || [];
+    let tracks = songsList.map((t) => {
+      const videoId = t.videoId || t.id;
+      const trackCover = getHighResThumbnailUrl(
+        mapping[videoId] ||
+          (t.thumbnails && t.thumbnails.length > 0
+            ? t.thumbnails[t.thumbnails.length - 1]?.url
+            : avatarUrl ||
+              (videoId
+                ? `https://img.youtube.com/vi/${videoId}/0.jpg`
+                : "https://images.unsplash.com/photo-1614680376593-902f74fa0d41?q=80&w=200&auto=format&fit=crop")),
+      );
+      return {
+        id: videoId,
+        title: t.title,
+        artist: (t.artists || []).map((a) => a.name).join(", ") || json.name,
+        coverUrl: trackCover,
+        duration: t.duration_seconds || 180,
+        sourceUrl: `${API_ROOT}/api/stream/${videoId}?redirect=true`,
+      };
+    });
+
+    // Dynamic padding: If the artist has fewer than 50 songs, search and append songs dynamically!
+    if (tracks.length < 50 && json.name) {
+      try {
+        const searchTracks = await searchSaavnSongs(json.name, 60);
+        const existingIds = new Set(tracks.map((t) => t.id));
+        for (const st of searchTracks) {
+          if (!existingIds.has(st.id)) {
+            const trackCover = getHighResThumbnailUrl(
+              mapping[st.id] ||
+                st.coverUrl ||
+                `https://images.unsplash.com/photo-1614680376593-902f74fa0d41?q=80&w=200&auto=format&fit=crop`,
+            );
+            tracks.push({
+              id: st.id,
+              title: st.title,
+              artist: st.artist,
+              coverUrl: trackCover,
+              duration: st.duration,
+              sourceUrl: st.sourceUrl,
+            });
+            existingIds.add(st.id);
+          }
+          if (tracks.length >= 50) break; // Fetch up to 50 songs dynamically
+        }
+      } catch (e) {
+        console.error("Failed to pad artist top tracks:", e);
+      }
+    }
+
+    return {
+      id: artistId,
+      name: json.name,
+      avatarUrl:
+        avatarUrl ||
+        `https://images.unsplash.com/photo-1614680376593-902f74fa0d41?q=80&w=200&auto=format&fit=crop`,
+      followerCount: followers,
+      tracks,
+    };
+  } catch (err) {
+    console.error("Error fetching artist details:", err);
+    return null;
+  }
+}
