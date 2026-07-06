@@ -150,7 +150,7 @@ function SearchPageContent() {
   return (
     <div className="space-y-6 pb-8 select-none">
       {/* Sticky Search Input Header & Tabs */}
-      <div className="sticky top-0 z-30 bg-zinc-950/80 backdrop-blur-md pt-2 pb-2 -mt-4 mb-4 space-y-4">
+      <div className="sticky -top-6 md:-top-8 z-30 bg-zinc-950 pt-6 md:pt-8 pb-3 -mx-6 md:-mx-8 px-6 md:px-8 mb-4 space-y-4">
         <form
           onSubmit={handleSearchSubmit}
           className="relative w-full max-w-2xl mx-auto"
