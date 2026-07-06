@@ -235,9 +235,6 @@ export default function HomePage() {
           "trending_now",
           "new_releases",
           "discover_new",
-          "continue_listening",
-          "recently_played",
-          "recent_listening_based",
         ].includes(shelf.id),
       );
 

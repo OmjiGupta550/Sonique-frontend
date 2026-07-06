@@ -87,8 +87,9 @@ export async function getHomeShelves() {
 }
 
 export async function fetchTrendingVideos() {
+  const userId = useUIStore.getState().profile?.id || "guest";
   try {
-    const res = await fetch(`${API_BASE}/videos/trending`);
+    const res = await fetch(`${API_BASE}/videos/trending?userId=${userId}`);
     if (res.ok) {
       const data = await res.json();
       return data.videos || [];

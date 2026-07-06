@@ -55,6 +55,7 @@ export function MiniPlayer() {
     playVideo,
     closeVideo,
     activeVideoId,
+    profile,
   } = useUIStore();
   const [showRemaining, setShowRemaining] = React.useState(false);
 
@@ -168,14 +169,16 @@ export function MiniPlayer() {
             <p className="text-xs text-zinc-400 truncate">{track.artist}</p>
           </div>
 
-          <button
-            onClick={() => toggleLike(track)}
-            className="ml-2 text-zinc-400 hover:text-white transition shrink-0"
-          >
-            <Heart
-              className={`w-5 h-5 ${isLiked(track.id) ? "fill-red-500 text-red-500" : ""}`}
-            />
-          </button>
+          {profile && (
+            <button
+              onClick={() => toggleLike(track)}
+              className="ml-2 text-zinc-400 hover:text-white transition shrink-0"
+            >
+              <Heart
+                className={`w-5 h-5 ${isLiked(track.id) ? "fill-red-500 text-red-500" : ""}`}
+              />
+            </button>
+          )}
         </div>
 
         {/* Center Controls */}
@@ -399,18 +402,20 @@ export function MiniPlayer() {
 
         {/* Right section: Like, Play/Pause, Next */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleLike(track);
-            }}
-            className="p-2 text-zinc-400 active:scale-90 transition shrink-0"
-            title="Like"
-          >
-            <Heart
-              className={`w-5 h-5 ${isLiked(track.id) ? "fill-red-500 text-red-500" : ""}`}
-            />
-          </button>
+          {profile && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleLike(track);
+              }}
+              className="p-2 text-zinc-400 active:scale-90 transition shrink-0"
+              title="Like"
+            >
+              <Heart
+                className={`w-5 h-5 ${isLiked(track.id) ? "fill-red-500 text-red-500" : ""}`}
+              />
+            </button>
+          )}
 
           <button
             onClick={(e) => {

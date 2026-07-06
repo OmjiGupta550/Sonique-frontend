@@ -164,14 +164,16 @@ export function TrackRow({
         </span>
 
         {/* Like Button */}
-        <button
-          onClick={() => toggleLike(track)}
-          className="text-zinc-500 hover:text-white transition"
-        >
-          <Heart
-            className={`w-4 h-4 ${isLiked(track.id) ? "fill-red-500 text-red-500" : ""}`}
-          />
-        </button>
+        {profile && (
+          <button
+            onClick={() => toggleLike(track)}
+            className="text-zinc-500 hover:text-white transition"
+          >
+            <Heart
+              className={`w-4 h-4 ${isLiked(track.id) ? "fill-red-500 text-red-500" : ""}`}
+            />
+          </button>
+        )}
 
         {/* Playlist Action / Delete */}
         {playlistId && onRemoveFromPlaylist ? (

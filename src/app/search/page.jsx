@@ -240,35 +240,6 @@ function SearchPageContent() {
             </div>
           )}
 
-          {/* Trending Searches */}
-          <div className="space-y-3 hidden md:block">
-            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider">
-              Trending Searches
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { name: "Aashiqui 2 Hits", tag: "Aashiqui 2" },
-                { name: "Lofi Chill Vibes", tag: "Lofi Chill" },
-                { name: "Rockstar OST", tag: "Rockstar" },
-                { name: "Trending Mashups", tag: "Mashup 2026" },
-                { name: "Brahmastra Album", tag: "Brahmastra" },
-                { name: "Arijit Singh Radio", tag: "Arijit Singh" },
-              ].map((item, i) => (
-                <div
-                  key={i}
-                  onClick={() => handleRecentTap(item.tag)}
-                  className="bg-gradient-to-br from-zinc-900/60 to-zinc-950/40 border border-white/5 p-4 rounded-xl flex items-center justify-between hover:border-white/10 transition cursor-pointer group"
-                >
-                  <span className="text-xs font-semibold text-zinc-200 group-hover:text-white">
-                    {item.name}
-                  </span>
-                  <span className="text-[10px] text-zinc-500 font-bold group-hover:translate-x-0.5 transition">
-                    →
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       ) : (
         <>

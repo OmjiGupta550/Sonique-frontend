@@ -81,15 +81,17 @@ export function Sidebar() {
 
       {/* Playlist Navigation */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800 pr-1 space-y-1 mb-4">
-        <Link
-          href="/library?tab=likes"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-white transition duration-200"
-        >
-          <div className="w-6 h-6 rounded bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white">
-            <Heart className="w-3.5 h-3.5 fill-white" />
-          </div>
-          <span className="truncate font-medium">Liked Songs</span>
-        </Link>
+        {profile && (
+          <Link
+            href="/library?tab=likes"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-white transition duration-200"
+          >
+            <div className="w-6 h-6 rounded bg-gradient-to-br from-indigo-500 to-pink-500 flex items-center justify-center text-white">
+              <Heart className="w-3.5 h-3.5 fill-white" />
+            </div>
+            <span className="truncate font-medium">Liked Songs</span>
+          </Link>
+        )}
 
         {playlists.map((playlist) => (
           <Link

@@ -59,6 +59,7 @@ export function FullscreenPlayer() {
     playVideo,
     closeVideo,
     activeVideoId,
+    profile,
   } = useUIStore();
   const [activeTab, setActiveTab] = useState("player");
 
@@ -315,14 +316,16 @@ export function FullscreenPlayer() {
                     <Tv className="w-6 h-6" />
                   </button>
                 )}
-                <button
-                  onClick={() => toggleLike(currentTrack)}
-                  className="p-3 rounded-full hover:bg-white/5 transition"
-                >
-                  <Heart
-                    className={`w-6 h-6 ${isLiked(currentTrack.id) ? "fill-red-500 text-red-500" : ""}`}
-                  />
-                </button>
+                {profile && (
+                  <button
+                    onClick={() => toggleLike(currentTrack)}
+                    className="p-3 rounded-full hover:bg-white/5 transition"
+                  >
+                    <Heart
+                      className={`w-6 h-6 ${isLiked(currentTrack.id) ? "fill-red-500 text-red-500" : ""}`}
+                    />
+                  </button>
+                )}
               </div>
             </div>
 
