@@ -176,9 +176,8 @@ export const useUIStore = create((set, get) => ({
           track_id: track.id,
           title: track.title,
           artist: track.artist,
-          cover_url: track.coverUrl,
-          duration: track.duration,
-          source_url: track.sourceUrl,
+          cover_url: track.coverUrl || "",
+          duration: track.duration || 0,
         };
 
         const { data, error } = await supabase
@@ -213,7 +212,6 @@ export const useUIStore = create((set, get) => ({
         user_id: profile.id,
         name,
         description,
-        cover_url: null,
       };
 
       const { data, error } = await supabase

@@ -149,8 +149,8 @@ function SearchPageContent() {
 
   return (
     <div className="space-y-6 pb-8 select-none">
-      {/* Sticky Search Input Header */}
-      <div className="sticky top-0 z-30 bg-zinc-950/80 backdrop-blur-md pt-2 pb-2 -mt-4 mb-4">
+      {/* Sticky Search Input Header & Tabs */}
+      <div className="sticky top-0 z-30 bg-zinc-950/80 backdrop-blur-md pt-2 pb-2 -mt-4 mb-4 space-y-4">
         <form
           onSubmit={handleSearchSubmit}
           className="relative w-full max-w-2xl mx-auto"
@@ -176,6 +176,29 @@ function SearchPageContent() {
             <Mic className="w-5 h-5" />
           </button>
         </form>
+
+        {queryParam.trim() && (
+          <div className="flex gap-2 border-b border-white/5 pb-2 text-sm font-semibold max-w-2xl mx-auto">
+            {["all", "audio", "video"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-3 py-1.5 rounded-lg border capitalize transition
+                  ${
+                    activeTab === tab
+                      ? "text-zinc-950 border-white"
+                      : "text-zinc-400 border-transparent hover:text-white"
+                  }`}
+                style={{
+                  backgroundColor:
+                    activeTab === tab ? accentColor : "transparent",
+                }}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {!queryParam.trim() ? (
@@ -249,27 +272,6 @@ function SearchPageContent() {
         </div>
       ) : (
         <>
-          {/* Result Tabs */}
-          <div className="flex gap-2 border-b border-white/5 pb-2 text-sm font-semibold">
-            {["all", "audio", "video"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1.5 rounded-lg border capitalize transition
-                  ${
-                    activeTab === tab
-                      ? "text-zinc-950 border-white"
-                      : "text-zinc-400 border-transparent hover:text-white"
-                  }`}
-                style={{
-                  backgroundColor:
-                    activeTab === tab ? accentColor : "transparent",
-                }}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
 
           {loading ? (
             <div className="flex justify-center py-20">
