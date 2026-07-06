@@ -317,10 +317,10 @@ export default function HomePage() {
     }
   };
 
-  // Initial load
+  // Initial load & profile change refresh
   useEffect(() => {
-    loadHomeData();
-  }, []);
+    loadHomeData(true);
+  }, [profile]);
 
   // Listen to actions completion refresh event
   useEffect(() => {

@@ -9,6 +9,8 @@ export async function trackPlay(track) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, track }),
     });
+    // Trigger real-time refresh custom event
+    window.dispatchEvent(new Event("sonique_recs_refresh"));
   } catch (err) {
     console.error("Failed to log play action:", err);
   }
@@ -22,6 +24,8 @@ export async function trackSkip(trackId, completionRate) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, trackId, completionRate }),
     });
+    // Trigger real-time refresh custom event
+    window.dispatchEvent(new Event("sonique_recs_refresh"));
   } catch (err) {
     console.error("Failed to log skip action:", err);
   }
