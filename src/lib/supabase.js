@@ -12,7 +12,15 @@ const DEFAULT_ANON_KEY = [
   "TGPOLzALF9VH-NbKhuQ1KGski5lI31H8eZcNbPH9BZE",
 ].join(".");
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_ANON_KEY;
+const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const envKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// A valid Supabase anon JWT key has 3 parts separated by dots and is ~200 chars long
+const isValidJwt = (k) =>
+  typeof k === "string" && k.split(".").length === 3 && k.length > 80;
+
+const supabaseUrl =
+  envUrl && envUrl.startsWith("http") ? envUrl : DEFAULT_URL;
+const supabaseAnonKey = isValidJwt(envKey) ? envKey : DEFAULT_ANON_KEY;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
