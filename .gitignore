@@ -8,6 +8,9 @@ out/
 # env files
 .env
 .env*.local
+.env.production
+!.env.production.example
 
 # misc
 .DS_Store
+
