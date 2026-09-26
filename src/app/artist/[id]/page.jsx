@@ -47,6 +47,9 @@ export default function ArtistPage() {
     coverUrl: t.coverUrl,
     duration: t.duration,
     sourceUrl: t.sourceUrl,
+    itemType: t.itemType,
+    hasVideo: t.hasVideo,
+    isVideo: t.isVideo,
   });
 
   const handlePlayArtist = () => {

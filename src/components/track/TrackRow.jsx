@@ -14,9 +14,18 @@ export function TrackRow({
   onRemoveFromPlaylist,
   showIndex = true,
 }) {
-  const { queue, currentIndex, isPlaying, playTrack, togglePlay } =
+  const { queue, currentIndex, isPlaying, playTrack, togglePlay, setVideoMode } =
     usePlayerStore();
-  const { toggleLike, isLiked, accentColor, playlists, profile } = useUIStore();
+  const {
+    toggleLike,
+    isLiked,
+    accentColor,
+    playlists,
+    profile,
+    addTrackToPlaylist,
+    setShowCreatePlaylistModal,
+    playVideo,
+  } = useUIStore();
 
   const isCurrent = queue[currentIndex]?.id === track.id;
 
@@ -163,17 +172,18 @@ export function TrackRow({
           {formatDuration(track.duration)}
         </span>
 
+
+
         {/* Like Button */}
-        {profile && (
-          <button
-            onClick={() => toggleLike(track)}
-            className="text-zinc-500 hover:text-white transition"
-          >
-            <Heart
-              className={`w-4 h-4 ${isLiked(track.id) ? "fill-red-500 text-red-500" : ""}`}
-            />
-          </button>
-        )}
+        <button
+          onClick={() => toggleLike(track)}
+          className="text-zinc-500 hover:text-white transition"
+          title={isLiked(track.id) ? "Unlike song" : "Like song"}
+        >
+          <Heart
+            className={`w-4 h-4 ${isLiked(track.id) ? "fill-red-500 text-red-500" : ""}`}
+          />
+        </button>
 
         {/* Playlist Action / Delete */}
         {playlistId && onRemoveFromPlaylist ? (
@@ -191,44 +201,41 @@ export function TrackRow({
             </button>
 
             {/* Popover Add to Playlist Dropdown */}
-            <div className="absolute right-0 top-6 hidden group-hover/menu:block bg-zinc-900 border border-white/10 rounded-lg shadow-xl py-1 w-44 z-30">
+            <div className="absolute right-0 top-6 hidden group-hover/menu:block bg-zinc-900 border border-white/10 rounded-lg shadow-xl py-1 w-48 z-30">
               <p className="text-[10px] font-bold text-zinc-500 px-3 py-1 uppercase tracking-wider">
                 Add to playlist
               </p>
               {playlists.map((playlist) => (
                 <button
                   key={playlist.id}
-                  onClick={async () => {
-                    if (!profile) return;
+                  onClick={async (e) => {
+                    e.stopPropagation();
                     try {
-                      // Insert playlist track
-                      await supabase.from("playlist_tracks").insert({
-                        playlist_id: playlist.id,
-                        track_id: track.id,
-                        title: track.title,
-                        artist: track.artist,
-                        cover_url: track.coverUrl,
-                        duration: track.duration,
-                        source_url: track.sourceUrl,
-                      });
-                      // Log to recommendations system
-                      trackPlaylistAdd(playlist.name, track);
-                      alert(`Added to ${playlist.name}`);
-                    } catch (e) {
-                      console.error(e);
+                      const success = await addTrackToPlaylist(playlist, track);
+                      if (success) {
+                        alert(`Added "${track.title}" to ${playlist.name}!`);
+                      }
+                    } catch (err) {
+                      console.error(err);
                     }
                   }}
-                  className="w-full text-left px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/5 hover:text-white truncate flex items-center gap-1.5"
+                  className="w-full text-left px-3 py-1.5 text-xs text-zinc-300 hover:bg-white/10 hover:text-white truncate flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Plus className="w-3.5 h-3.5" />
-                  {playlist.name}
+                  <Plus className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                  <span className="truncate">{playlist.name}</span>
                 </button>
               ))}
-              {playlists.length === 0 && (
-                <p className="text-xs text-zinc-600 px-3 py-2 italic">
-                  No playlists created
-                </p>
-              )}
+              <div className="border-t border-white/5 my-1" />
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowCreatePlaylistModal(true);
+                }}
+                className="w-full text-left px-3 py-1.5 text-xs text-indigo-400 hover:bg-white/10 hover:text-indigo-300 font-semibold flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 shrink-0" />
+                <span>Create New Playlist</span>
+              </button>
             </div>
           </div>
         )}

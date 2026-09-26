@@ -8,6 +8,7 @@ import { useUIStore } from "../../../store/useUIStore";
 import { usePlayerStore } from "../../../store/usePlayerStore";
 import { TrackRow } from "../../../components/track/TrackRow";
 import { Disc, Play, Trash2, Calendar, Music } from "lucide-react";
+import { API_BASE } from "../../../lib/config";
 
 export default function PlaylistPage() {
   const params = useParams();
@@ -25,7 +26,8 @@ export default function PlaylistPage() {
   const loadPlaylistDetails = async () => {
     try {
       const isSaavn = /^\d+$/.test(playlistId);
-      setIsCurated(isSaavn);
+      const isYTPlaylist = playlistId.startsWith("RDCLAK") || playlistId.startsWith("PL") || playlistId.startsWith("VL");
+      setIsCurated(isSaavn || isYTPlaylist);
 
       if (isSaavn) {
         // Load curated JioSaavn Playlist
@@ -48,43 +50,100 @@ export default function PlaylistPage() {
             coverUrl: t.coverUrl,
             duration: t.duration,
             sourceUrl: t.sourceUrl,
+            itemType: t.itemType,
+            hasVideo: t.hasVideo,
+            isVideo: t.isVideo,
           })),
         );
-      } else {
-        // Load custom Supabase Playlist
-        const { data: pl } = await supabase
-          .from("playlists")
-          .select("*")
-          .eq("id", playlistId)
-          .single();
-
-        if (!pl) {
+      } else if (isYTPlaylist) {
+        // Load YouTube Music Playlist
+        const res = await fetch(`${API_BASE}/playlist/${playlistId}`);
+        if (res.ok) {
+          const details = await res.json();
+          setPlaylist({
+            name: details.title || "YouTube Music Playlist",
+            description: details.description || "Curated playlist from YouTube Music",
+            coverUrl: details.thumbnails?.[details.thumbnails.length - 1]?.url || "/placeholder.png",
+          });
+          const mappedTracks = (details.tracks || []).map((t) => {
+            const artists = (t.artists || []).map((a) => a.name).filter(Boolean).join(", ");
+            const cover = t.thumbnails?.[t.thumbnails.length - 1]?.url || (t.videoId ? `https://i.ytimg.com/vi/${t.videoId}/hqdefault.jpg` : "/placeholder.png");
+            return {
+              id: t.videoId || t.id,
+              title: t.title || "Unknown Track",
+              artist: artists || t.author || "Various Artists",
+              coverUrl: cover,
+              duration: t.duration_seconds || 180,
+              sourceUrl: `${API_BASE}/stream/${t.videoId || t.id}?redirect=true`,
+            };
+          });
+          setTracks(mappedTracks);
+        } else {
           router.push("/library");
           return;
         }
+      } else {
+        // Load custom User Playlist (Check Local Storage + Store + Supabase)
+        let pl = null;
+        let list = [];
 
-        // Get playlist tracks
-        const { data: list } = await supabase
-          .from("playlist_tracks")
-          .select("*")
-          .eq("playlist_id", playlistId)
-          .order("created_at", { ascending: true });
+        if (typeof window !== "undefined") {
+          const localPlaylists = JSON.parse(
+            localStorage.getItem("sonique_playlists") || "[]"
+          );
+          pl = localPlaylists.find((p) => String(p.id) === String(playlistId));
+          const storageKey = `sonique_playlist_tracks_${playlistId}`;
+          list = JSON.parse(localStorage.getItem(storageKey) || "[]");
+        }
+
+        if (!pl) {
+          const storePlaylists = useUIStore.getState().playlists;
+          pl = storePlaylists.find((p) => String(p.id) === String(playlistId));
+        }
+
+        if (!pl && profile) {
+          try {
+            const { data: dbPl } = await supabase
+              .from("playlists")
+              .select("*")
+              .eq("id", playlistId)
+              .maybeSingle();
+            if (dbPl) pl = dbPl;
+
+            if (list.length === 0) {
+              const { data: dbTracks } = await supabase
+                .from("playlist_tracks")
+                .select("*")
+                .eq("playlist_id", playlistId)
+                .order("created_at", { ascending: true });
+              if (dbTracks) list = dbTracks;
+            }
+          } catch (e) {
+            console.error("Error fetching Supabase playlist details:", e);
+          }
+        }
+
+        if (!pl && list.length === 0) {
+          router.push("/library?tab=playlists");
+          return;
+        }
 
         setPlaylist({
-          name: pl.name,
-          description: pl.description,
-          coverUrl: pl.cover_url,
-          created_at: pl.created_at,
+          name: pl?.name || "My Playlist",
+          description: pl?.description || "User created compilation",
+          coverUrl: pl?.cover_url || pl?.coverUrl || (list[0]?.coverUrl || list[0]?.cover_url) || null,
+          created_at: pl?.created_at || new Date().toISOString(),
         });
+
         setTracks(
           (list || []).map((pt) => ({
-            id: pt.track_id,
-            title: pt.title,
-            artist: pt.artist,
-            coverUrl: pt.cover_url || null,
-            duration: pt.duration,
-            sourceUrl: pt.source_url,
-          })),
+            id: pt.track_id || pt.id || pt.videoId,
+            title: pt.title || "Unknown Track",
+            artist: pt.artist || "Unknown Artist",
+            coverUrl: pt.cover_url || pt.coverUrl || null,
+            duration: pt.duration || 180,
+            sourceUrl: pt.source_url || pt.sourceUrl,
+          }))
         );
       }
     } catch (err) {
@@ -106,16 +165,25 @@ export default function PlaylistPage() {
 
   const handleRemoveTrack = async (trackId) => {
     if (isCurated) return;
-    try {
-      await supabase
-        .from("playlist_tracks")
-        .delete()
-        .eq("playlist_id", playlistId)
-        .eq("track_id", trackId);
+    const updated = tracks.filter((t) => (t.id || t.track_id) !== trackId);
+    setTracks(updated);
 
-      setTracks(tracks.filter((t) => t.id !== trackId));
-    } catch (e) {
-      console.error(e);
+    if (typeof window !== "undefined") {
+      const storageKey = `sonique_playlist_tracks_${playlistId}`;
+      localStorage.setItem(storageKey, JSON.stringify(updated));
+      window.dispatchEvent(new Event("sonique_playlist_tracks_changed"));
+    }
+
+    if (profile && !String(playlistId).startsWith("local_")) {
+      try {
+        await supabase
+          .from("playlist_tracks")
+          .delete()
+          .eq("playlist_id", playlistId)
+          .eq("track_id", trackId);
+      } catch (e) {
+        console.error("Supabase remove track error:", e);
+      }
     }
   };
 

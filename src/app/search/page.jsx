@@ -102,7 +102,23 @@ function SearchPageContent() {
   const performSearch = async (query) => {
     setLoading(true);
     try {
-      const tracksRes = await searchSaavnSongs(query);
+      // Fetch audio songs AND video results in parallel so the Video tab
+      // actually has content (filter=songs alone almost never returns videos).
+      const [audioRes, videoRes] = await Promise.all([
+        searchSaavnSongs(query, 50),
+        searchSaavnSongs(query, 50, "videos"),
+      ]);
+      const merged = [
+        ...audioRes,
+        ...videoRes.map((v) => ({ ...v, hasVideo: true, itemType: "video" })),
+      ];
+      // Deduplicate by id in case the same video shows up in both lists
+      const seen = new Set();
+      const tracksRes = merged.filter((t) => {
+        if (!t.id || seen.has(t.id)) return false;
+        seen.add(t.id);
+        return true;
+      });
       setTracks(tracksRes);
       trackGenericAction("search_query", { query });
       saveRecentSearch(query);
@@ -141,7 +157,9 @@ function SearchPageContent() {
     coverUrl: t.coverUrl,
     duration: t.duration,
     sourceUrl: t.sourceUrl,
+    itemType: t.itemType,
     hasVideo: t.hasVideo,
+    isVideo: t.isVideo,
   });
 
   const audioTracks = tracks.filter((t) => !t.hasVideo);
@@ -149,44 +167,18 @@ function SearchPageContent() {
 
   return (
     <div className="space-y-6 pb-8 select-none">
-      {/* Sticky Search Input Header & Tabs */}
-      <div className="sticky -top-6 md:-top-8 z-30 bg-zinc-950 pt-6 md:pt-8 pb-3 -mx-6 md:-mx-8 px-6 md:px-8 mb-4 space-y-4">
-        <form
-          onSubmit={handleSearchSubmit}
-          className="relative w-full max-w-2xl mx-auto"
-        >
-          <input
-            type="text"
-            value={inputVal}
-            onChange={(e) => setInputVal(e.target.value)}
-            placeholder={
-              isListening ? "Listening..." : "Search songs, artists, albums..."
-            }
-            className={`w-full bg-zinc-900/60 border border-white/5 focus:border-zinc-700/60 rounded-full py-3.5 pl-12 pr-12 text-sm text-white focus:outline-none focus:bg-zinc-900 transition duration-200 shadow-lg ${isListening ? "placeholder-red-400 border-red-500/30" : ""}`}
-            autoFocus
-          />
-
-          <Search className="w-5 h-5 text-zinc-400 absolute left-4 top-3.5" />
-          <button
-            type="button"
-            onClick={startVoiceSearch}
-            className={`absolute right-4 top-3 p-1 rounded-full transition duration-200 ${isListening ? "bg-red-500/20 text-red-500 animate-pulse" : "text-zinc-400 hover:text-white"}`}
-            title="Voice Search"
-          >
-            <Mic className="w-5 h-5" />
-          </button>
-        </form>
-
-        {queryParam.trim() && (
-          <div className="flex gap-2 border-b border-white/5 pb-2 text-sm font-semibold max-w-2xl mx-auto">
+      {/* Sticky Tabs Bar */}
+      {queryParam.trim() && (
+        <div className="sticky -top-6 md:-top-8 z-30 bg-zinc-950/80 backdrop-blur-md pt-4 pb-3 -mx-6 md:-mx-8 px-6 md:px-8 mb-4 border-b border-white/5">
+          <div className="flex gap-2 text-sm font-semibold max-w-2xl mx-auto">
             {["all", "audio", "video"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1.5 rounded-lg border capitalize transition
+                className={`px-3.5 py-1.5 rounded-lg border capitalize transition
                   ${
                     activeTab === tab
-                      ? "text-zinc-950 border-white"
+                      ? "text-zinc-950 border-white font-bold"
                       : "text-zinc-400 border-transparent hover:text-white"
                   }`}
                 style={{
@@ -198,8 +190,8 @@ function SearchPageContent() {
               </button>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {!queryParam.trim() ? (
         <div className="space-y-8 max-w-2xl mx-auto px-1">
@@ -301,7 +293,7 @@ function SearchPageContent() {
                   videoTracks.length === 0)) && (
                 <div className="flex flex-col items-center justify-center py-20 text-zinc-500">
                   <p className="text-sm italic">
-                    No matching results found for "{queryParam}"
+                    No matching results found for &quot;{queryParam}&quot;
                   </p>
                 </div>
               )}

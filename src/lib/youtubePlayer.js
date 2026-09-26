@@ -40,7 +40,7 @@ class YouTubeAudioElement {
       // Absolute positioning offscreen, hidden by default unless transitioned by layout engine
       container.setAttribute(
         "style",
-        "position: fixed; width: 200px; height: 200px; top: -1000px; left: -1000px; opacity: 0; pointer-events: none; z-index: -9999; border-radius: 8px; overflow: hidden; transition: opacity 0.3s ease, transform 0.3s ease;",
+        "position: fixed; width: 200px; height: 200px; top: -1000px; left: -1000px; opacity: 0; pointer-events: none; z-index: -9999; border-radius: 8px; overflow: hidden; transition: top 0.35s cubic-bezier(0.4, 0, 0.2, 1), left 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1), height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, border-radius 0.35s ease;",
       );
       const iframePlaceholder = document.createElement("div");
       iframePlaceholder.id = this.elementId;
@@ -107,6 +107,7 @@ class YouTubeAudioElement {
       this.player = new window.YT.Player(this.elementId, {
         height: "100%",
         width: "100%",
+        host: "https://www.youtube-nocookie.com",
         playerVars: {
           autoplay: 0,
           controls: 0,
@@ -117,6 +118,7 @@ class YouTubeAudioElement {
           iv_load_policy: 3,
           playsinline: 1,
           origin: originParam,
+          enablejsapi: 1,
           modestbranding: 1,
         },
         events: {
@@ -246,6 +248,14 @@ class YouTubeAudioElement {
       this._currentTime = 0;
       this._duration = 0;
       this.isLoaded = false;
+      if (this.isReady && this.player && this.player.seekTo) {
+        try {
+          this.player.seekTo(0, true);
+        } catch (e) {}
+      }
+    } else {
+      // Re-triggering src forces start from beginning unless explicitly preserved
+      this.isLoaded = false;
     }
   }
 
@@ -358,7 +368,13 @@ class YouTubeAudioElement {
   }
 
   load() {
-    logMsg("Load requested (No-op in YouTube element).");
+    logMsg(`Load requested for video ID: ${this.videoId}. Resetting isLoaded.`);
+    // Only mark for a fresh load. Do NOT seek here: at this point the player
+    // is still on the PREVIOUS video, and seeking it to this._currentTime (a
+    // position synced from that old video) let stale offsets leak into the
+    // next loadVideoById call. play() passes the explicit startSeconds
+    // instead, so the new video always starts exactly where the store pins it.
+    this.isLoaded = false;
   }
 
   addEventListener(event, callback) {

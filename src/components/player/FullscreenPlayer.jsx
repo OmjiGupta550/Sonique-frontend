@@ -13,9 +13,6 @@ import {
   Shuffle,
   Repeat,
   Heart,
-  Moon,
-  Clock,
-  Tv,
 } from "lucide-react";
 import { Slider } from "../ui/Slider";
 import { LyricsPanel } from "../lyrics/LyricsPanel";
@@ -29,25 +26,16 @@ export function FullscreenPlayer() {
     isPlaying,
     currentTime,
     duration,
-    volume,
-    isMuted,
     repeatMode,
     showFullscreenPlayer,
-    sleepTimer,
-    sleepTimerActive,
     togglePlay,
     playTrack,
     next,
     previous,
     seek,
-    setCurrentTime,
-    setVolume,
-    toggleMute,
     toggleShuffle,
     toggleRepeat,
     setShowFullscreenPlayer,
-    isVideoMode,
-    setVideoMode,
   } = usePlayerStore();
 
   const {
@@ -55,29 +43,42 @@ export function FullscreenPlayer() {
     isLiked,
     accentColor,
     setAccentColor,
-    setShowSleepTimerModal,
-    playVideo,
-    closeVideo,
-    activeVideoId,
     profile,
   } = useUIStore();
-  const [activeTab, setActiveTab] = useState("player");
-
-  // SSR-safe responsive hook: auto-set active tab to lyrics on desktop screens
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const handleResize = () => {
-      if (window.innerWidth >= 768 && activeTab === "player") {
-        setActiveTab("lyrics");
-      }
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [activeTab]);
+  const [activeTab, setActiveTab] = useState("lyrics");
 
   const activeQueue = isShuffle ? shuffledQueue : queue;
   const currentTrack = activeQueue[currentIndex];
+  const [thumbnailAspect, setThumbnailAspect] = useState("square"); // "rectangle" | "square"
+
+  // Detect thumbnail aspect ratio whenever track or coverUrl changes
+  useEffect(() => {
+    if (!currentTrack) return;
+    const coverUrl =
+      currentTrack.coverUrl &&
+      currentTrack.coverUrl.trim() !== "" &&
+      currentTrack.coverUrl !== "null" &&
+      currentTrack.coverUrl !== "undefined"
+        ? currentTrack.coverUrl
+        : currentTrack.videoId || currentTrack.id
+        ? `https://i.ytimg.com/vi/${currentTrack.videoId || currentTrack.id}/hqdefault.jpg`
+        : null;
+
+    if (!coverUrl) {
+      setThumbnailAspect("square");
+      return;
+    }
+
+    const testImg = new Image();
+    testImg.src = coverUrl;
+    testImg.onload = () => {
+      if (testImg.naturalWidth && testImg.naturalHeight) {
+        const ratio = testImg.naturalWidth / testImg.naturalHeight;
+        // If wider than 1.25, it's a rectangle / widescreen (e.g. 16:9 is 1.77)
+        setThumbnailAspect(ratio > 1.25 ? "rectangle" : "square");
+      }
+    };
+  }, [currentTrack?.id, currentTrack?.coverUrl]);
 
   // Extract average color from artwork
   useEffect(() => {
@@ -173,18 +174,8 @@ export function FullscreenPlayer() {
             <ChevronDown className="w-6 h-6" />
           </button>
 
-          {/* Centered Tabs */}
+          {/* Centered Tabs: Lyrics and Up Next only */}
           <div className="flex items-center gap-6 font-semibold text-sm">
-            <button
-              onClick={() => setActiveTab("player")}
-              className={`md:hidden py-1 border-b-2 transition ${activeTab === "player" ? "text-white" : "text-zinc-500 hover:text-white border-transparent"}`}
-              style={{
-                borderBottomColor:
-                  activeTab === "player" ? accentColor : "transparent",
-              }}
-            >
-              Player
-            </button>
             <button
               onClick={() => setActiveTab("lyrics")}
               className={`py-1 border-b-2 transition ${activeTab === "lyrics" ? "text-white" : "text-zinc-500 hover:text-white border-transparent"}`}
@@ -207,81 +198,34 @@ export function FullscreenPlayer() {
             </button>
           </div>
 
-          <div className="flex items-center gap-2 hidden sm:flex">
-            {sleepTimerActive && (
-              <div className="flex items-center gap-1 bg-white/5 px-2.5 py-1 rounded-full text-xs font-semibold text-indigo-300">
-                <Clock className="w-3.5 h-3.5" />
-                <span>{sleepTimer}m</span>
-              </div>
-            )}
-            <button
-              onClick={() => setShowSleepTimerModal(true)}
-              className="p-2 rounded-full hover:bg-white/5 transition text-zinc-400 hover:text-white"
-              title="Sleep Timer"
-            >
-              <Moon className="w-5 h-5" />
-            </button>
-          </div>
-          {/* Spacer to keep tabs centered on mobile */}
-          <div className="w-10 h-10 sm:hidden" />
+          {/* Spacer to keep tabs centered */}
+          <div className="w-10 h-10" />
         </header>
 
         {/* Core Layout Split */}
         <main className="flex-1 min-h-0 flex flex-col md:flex-row p-4 sm:p-6 md:p-12 overflow-hidden gap-4 md:gap-16 z-10 max-w-7xl mx-auto w-full items-center pointer-events-auto">
-          {/* Left Panel: Cover Art & Controls */}
-          <div
-            className={`h-full max-h-full flex flex-col justify-between items-center max-w-md mx-auto w-full pt-2 pb-6 md:py-2 transition-all duration-300 ${activeTab !== "player" ? "hidden md:flex" : "flex"}`}
-          >
-            {/* Artwork Container - Reverted back to original dimensions as requested */}
+          {/* Left Panel: Always Video Player & Controls */}
+          <div className="h-full max-h-full flex flex-col justify-between items-center max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto w-full pt-2 pb-6 md:py-2 transition-all duration-300 flex">
+            {/* Always Video Container */}
             <div
-              className={`h-[22vh] sm:h-[30vh] md:h-[32vh] lg:h-[36vh] xl:h-[40vh] ${isVideoMode ? "aspect-video w-full max-w-lg bg-transparent" : "aspect-square bg-zinc-900"} rounded-2xl border border-white/10 shadow-2xl relative group overflow-hidden mb-3 transition-all duration-700 hover:scale-[1.02] shrink cursor-pointer`}
+              className="relative group overflow-hidden mb-3 transition-all duration-300 hover:scale-[1.01] shrink cursor-pointer border border-white/10 shadow-2xl w-full max-w-2xl md:max-w-3xl lg:max-w-4xl aspect-video bg-zinc-950 rounded-2xl flex items-center justify-center"
               style={{
                 boxShadow: `0 20px 50px -15px ${accentColor}40`,
               }}
               onClick={togglePlay}
             >
-              {isVideoMode ? (
-                <div className="relative w-full h-full bg-transparent">
-                  <div
-                    id="youtube-player-placeholder"
-                    className="w-full h-full rounded-2xl bg-transparent"
-                  />
-
-                  {/* Click Overlay to toggle play/pause and capture cursor events away from iframe branding */}
-                  <div
-                    className="absolute inset-0 z-30 cursor-pointer"
-                    onClick={togglePlay}
-                  />
-                </div>
-              ) : (
-                <img
-                  src={
-                    currentTrack.coverUrl &&
-                    currentTrack.coverUrl.trim() !== "" &&
-                    currentTrack.coverUrl !== "null" &&
-                    currentTrack.coverUrl !== "undefined"
-                      ? currentTrack.coverUrl
-                      : currentTrack.id && currentTrack.id.length === 11
-                        ? `https://i.ytimg.com/vi/${currentTrack.id}/maxresdefault.jpg`
-                        : "/placeholder.png"
-                  }
-                  alt={currentTrack.title}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.currentTarget.onerror = null; // Prevent infinite loading loops
-                    if (
-                      e.currentTarget.src !==
-                        `https://i.ytimg.com/vi/${currentTrack.id}/hqdefault.jpg` &&
-                      currentTrack.id &&
-                      currentTrack.id.length === 11
-                    ) {
-                      e.currentTarget.src = `https://i.ytimg.com/vi/${currentTrack.id}/hqdefault.jpg`;
-                    } else {
-                      e.currentTarget.src = "/placeholder.png";
-                    }
-                  }}
+              <div className="relative w-full h-full bg-zinc-950 flex items-center justify-center rounded-2xl overflow-hidden">
+                <div
+                  id="fullscreen-youtube-player-placeholder"
+                  className="w-full h-full bg-zinc-950 fullscreen-youtube-player-placeholder overflow-hidden object-contain rounded-2xl"
                 />
-              )}
+
+                {/* Click Overlay to toggle play/pause */}
+                <div
+                  className="absolute inset-0 z-30 cursor-pointer"
+                  onClick={togglePlay}
+                />
+              </div>
             </div>
 
             {/* Song Metadata */}
@@ -295,27 +239,6 @@ export function FullscreenPlayer() {
                 </p>
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                {(isVideoMode || currentTrack.hasVideo) && (
-                  <button
-                    onClick={() => {
-                      if (isVideoMode) {
-                        setVideoMode(false);
-                        closeVideo();
-                      } else {
-                        setVideoMode(true);
-                        playVideo(currentTrack.id);
-                      }
-                    }}
-                    className={`p-3 rounded-full hover:bg-white/5 transition ${
-                      isVideoMode
-                        ? "text-red-400 bg-red-500/10 animate-pulse"
-                        : "text-zinc-400 hover:text-red-400"
-                    }`}
-                    title={isVideoMode ? "Watch Audio Only" : "Watch Video"}
-                  >
-                    <Tv className="w-6 h-6" />
-                  </button>
-                )}
                 {profile && (
                   <button
                     onClick={() => toggleLike(currentTrack)}
@@ -393,10 +316,8 @@ export function FullscreenPlayer() {
             </div>
           </div>
 
-          {/* Right Panel: Sliding Lyrics or Queue content (Hidden on mobile when in Player mode) */}
-          <div
-            className={`flex-1 min-w-0 h-full overflow-hidden flex flex-col justify-center transition-all duration-300 pt-4 ${activeTab === "player" ? "hidden md:flex" : "flex"}`}
-          >
+          {/* Right Panel: Sliding Lyrics or Queue content */}
+          <div className="flex-1 min-w-0 h-full overflow-hidden flex flex-col justify-center transition-all duration-300 pt-4 flex">
             {activeTab === "queue" ? (
               <div className="h-full overflow-y-auto overscroll-contain pr-2 queue-scrollbar py-4 flex flex-col gap-2">
                 <h3 className="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-2">
@@ -408,7 +329,7 @@ export function FullscreenPlayer() {
                   return (
                     <div
                       key={`${track.id}-${idx}`}
-                      onClick={() => playTrack(track, activeQueue, isVideoMode)}
+                      onClick={() => playTrack(track, activeQueue)}
                       className={`flex items-center gap-3 p-2.5 rounded-lg border cursor-pointer transition ${isCurrent ? "bg-white/10 border-white/10" : "bg-transparent border-transparent hover:bg-white/5 hover:border-white/5"}`}
                     >
                       <span className="text-xs font-semibold text-zinc-500 w-4 text-right">
@@ -450,53 +371,51 @@ export function FullscreenPlayer() {
           </div>
         </main>
 
-        {/* Compact bottom control bar for mobile when in lyrics or queue tab */}
-        {activeTab !== "player" && (
-          <div className="md:hidden border-t border-white/5 bg-zinc-950/80 backdrop-blur-md px-4 pt-4 pb-6 flex items-center justify-between z-20 pointer-events-auto">
-            <div className="flex items-center gap-3 overflow-hidden flex-1 mr-4">
-              <img
-                src={currentTrack.coverUrl || ""}
-                alt=""
-                className="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0"
-              />
+        {/* Compact bottom control bar for mobile */}
+        <div className="md:hidden border-t border-white/5 bg-zinc-950/80 backdrop-blur-md px-4 pt-4 pb-6 flex items-center justify-between z-20 pointer-events-auto">
+          <div className="flex items-center gap-3 overflow-hidden flex-1 mr-4">
+            <img
+              src={currentTrack.coverUrl || ""}
+              alt=""
+              className="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0"
+            />
 
-              <div className="overflow-hidden">
-                <p className="text-sm font-bold truncate text-white">
-                  {currentTrack.title}
-                </p>
-                <p className="text-xs text-zinc-400 truncate">
-                  {currentTrack.artist}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={previous}
-                className="p-2 text-zinc-400 hover:text-white transition"
-              >
-                <SkipBack className="w-5 h-5 fill-current" />
-              </button>
-              <button
-                onClick={togglePlay}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-950 transition"
-                style={{ backgroundColor: accentColor }}
-              >
-                {isPlaying ? (
-                  <Pause className="w-4 h-4 fill-zinc-950 text-zinc-950" />
-                ) : (
-                  <Play className="w-4 h-4 fill-zinc-950 text-zinc-950 translate-x-0.5" />
-                )}
-              </button>
-              <button
-                onClick={next}
-                className="p-2 text-zinc-400 hover:text-white transition"
-              >
-                <SkipForward className="w-5 h-5 fill-current" />
-              </button>
+            <div className="overflow-hidden">
+              <p className="text-sm font-bold truncate text-white">
+                {currentTrack.title}
+              </p>
+              <p className="text-xs text-zinc-400 truncate">
+                {currentTrack.artist}
+              </p>
             </div>
           </div>
-        )}
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={previous}
+              className="p-2 text-zinc-400 hover:text-white transition"
+            >
+              <SkipBack className="w-5 h-5 fill-current" />
+            </button>
+            <button
+              onClick={togglePlay}
+              className="w-10 h-10 rounded-full flex items-center justify-center text-zinc-950 transition"
+              style={{ backgroundColor: accentColor }}
+            >
+              {isPlaying ? (
+                <Pause className="w-4 h-4 fill-zinc-950 text-zinc-950" />
+              ) : (
+                <Play className="w-4 h-4 fill-zinc-950 text-zinc-950 translate-x-0.5" />
+              )}
+            </button>
+            <button
+              onClick={next}
+              className="p-2 text-zinc-400 hover:text-white transition"
+            >
+              <SkipForward className="w-5 h-5 fill-current" />
+            </button>
+          </div>
+        </div>
       </motion.div>
     </AnimatePresence>
   );

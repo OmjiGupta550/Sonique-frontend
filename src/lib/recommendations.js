@@ -1,8 +1,10 @@
 import { useUIStore } from "../store/useUIStore";
 import { API_BASE } from "./config";
 
+const getUserId = () => useUIStore.getState().profile?.id || "default";
+
 export async function trackPlay(track) {
-  const userId = useUIStore.getState().profile?.id || "guest";
+  const userId = getUserId();
   try {
     await fetch(`${API_BASE}/play`, {
       method: "POST",
@@ -17,7 +19,7 @@ export async function trackPlay(track) {
 }
 
 export async function trackSkip(trackId, completionRate) {
-  const userId = useUIStore.getState().profile?.id || "guest";
+  const userId = getUserId();
   try {
     await fetch(`${API_BASE}/skip`, {
       method: "POST",
@@ -32,7 +34,7 @@ export async function trackSkip(trackId, completionRate) {
 }
 
 export async function trackLike(track, isLike) {
-  const userId = useUIStore.getState().profile?.id || "guest";
+  const userId = getUserId();
   const endpoint = isLike === 1 ? "like" : "dislike";
   try {
     await fetch(`${API_BASE}/${endpoint}`, {
@@ -48,7 +50,7 @@ export async function trackLike(track, isLike) {
 }
 
 export async function trackPlaylistAdd(playlistName, track) {
-  const userId = useUIStore.getState().profile?.id || "guest";
+  const userId = getUserId();
   try {
     await fetch(`${API_BASE}/playlist/add`, {
       method: "POST",
@@ -62,7 +64,7 @@ export async function trackPlaylistAdd(playlistName, track) {
 }
 
 export async function trackGenericAction(actionType, metaData = {}) {
-  const userId = useUIStore.getState().profile?.id || "guest";
+  const userId = getUserId();
   try {
     await fetch(`${API_BASE}/action`, {
       method: "POST",
@@ -77,7 +79,7 @@ export async function trackGenericAction(actionType, metaData = {}) {
 }
 
 export async function getHomeShelves() {
-  const userId = useUIStore.getState().profile?.id || "guest";
+  const userId = getUserId();
   try {
     const res = await fetch(`${API_BASE}/home?userId=${userId}`);
     if (res.ok) {
@@ -91,7 +93,7 @@ export async function getHomeShelves() {
 }
 
 export async function fetchTrendingVideos() {
-  const userId = useUIStore.getState().profile?.id || "guest";
+  const userId = getUserId();
   try {
     const res = await fetch(`${API_BASE}/videos/trending?userId=${userId}`);
     if (res.ok) {

@@ -32,7 +32,6 @@ export function MiniPlayer() {
     isMuted,
     repeatMode,
     togglePlay,
-    playTrack,
     next,
     previous,
     seek,
@@ -40,12 +39,9 @@ export function MiniPlayer() {
     toggleMute,
     toggleShuffle,
     toggleRepeat,
-    showFullscreenPlayer,
     setShowFullscreenPlayer,
     setShowQueueList,
     showQueueList,
-    isVideoMode,
-    setVideoMode,
   } = usePlayerStore();
 
   const {
@@ -96,68 +92,42 @@ export function MiniPlayer() {
     <div className="fixed bottom-[84px] md:bottom-0 left-0 right-0 h-16 md:h-20 bg-transparent md:bg-zinc-950/90 md:border-t md:border-white/5 md:backdrop-blur-2xl z-50 select-none">
       {/* Desktop Layout (md:flex) */}
       <div className="hidden md:flex items-center justify-between px-4 h-full">
-        {/* Left - Artwork Cover or Widescreen Video Corner Preview */}
-        <div className="flex items-center gap-3 w-[30%] min-w-[120px] sm:min-w-[180px]">
-          {isVideoMode && !showFullscreenPlayer && !activeVideoId ? (
-            /* Widescreen YouTube Video Corner Preview */
-            <div className="w-24 h-14 rounded-lg bg-zinc-950 overflow-hidden shrink-0 relative border border-white/10 shadow-md group cursor-pointer">
-              <div
-                id="youtube-player-placeholder"
-                className="w-full h-full bg-transparent"
-              />
+        {/* Left - Video / Album Art Slot in Left Corner */}
+        <div className="flex items-center gap-3 w-[30%] min-w-[140px] sm:min-w-[200px]">
+          <div
+            id="mini-youtube-player-placeholder-desktop"
+            className="w-24 h-14 rounded-lg overflow-hidden border border-white/10 shadow-md cursor-pointer shrink-0 relative group bg-black"
+            onClick={() => setShowFullscreenPlayer(true)}
+            title="Expand to Fullscreen & Lyrics"
+          >
+            <img
+              src={coverSrc}
+              alt={track.title}
+              className="w-full h-full object-cover transition duration-300 group-hover:scale-105 opacity-80 group-hover:opacity-60"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                if (
+                  e.currentTarget.src !==
+                    `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg` &&
+                  track.id &&
+                  track.id.length === 11
+                ) {
+                  e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg`;
+                } else {
+                  e.currentTarget.src = "/placeholder.png";
+                }
+              }}
+            />
 
-              {/* Corner maximize hover overlay */}
-              <div
-                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center z-20 cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowFullscreenPlayer(true);
-                }}
-                title="Fullscreen Video"
-              >
-                <Maximize2 className="w-4 h-4 text-white" />
-              </div>
-              {/* Click Overlay to toggle play/pause */}
-              <div
-                className="absolute inset-0 z-10 cursor-pointer"
-                onClick={togglePlay}
-              />
+            {/* Hover overlay play/pause indicator */}
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+              {isPlaying ? (
+                <Pause className="w-5 h-5 text-white" />
+              ) : (
+                <Play className="w-5 h-5 text-white translate-x-0.5" />
+              )}
             </div>
-          ) : (
-            /* Standard Square Album Art Cover image */
-            <div
-              className="w-14 h-14 rounded-lg overflow-hidden border border-white/5 shadow-md cursor-pointer shrink-0 relative group"
-              onClick={() => setShowFullscreenPlayer(true)}
-            >
-              <img
-                src={coverSrc}
-                alt={track.title}
-                className="w-full h-full object-cover transition duration-300 group-hover:scale-105"
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  if (
-                    e.currentTarget.src !==
-                      `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg` &&
-                    track.id &&
-                    track.id.length === 11
-                  ) {
-                    e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg`;
-                  } else {
-                    e.currentTarget.src = "/placeholder.png";
-                  }
-                }}
-              />
-
-              {/* Hover overlay play/pause indicator */}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                {isPlaying ? (
-                  <Pause className="w-5 h-5 text-white" />
-                ) : (
-                  <Play className="w-5 h-5 text-white translate-x-0.5" />
-                )}
-              </div>
-            </div>
-          )}
+          </div>
 
           <div className="overflow-hidden">
             <h4
@@ -312,27 +282,24 @@ export function MiniPlayer() {
             />
           </div>
 
-          {track.hasVideo && (
-            <button
-              onClick={() => {
-                if (isVideoMode) {
-                  setVideoMode(false);
-                  closeVideo();
-                } else {
-                  setVideoMode(true);
-                  playVideo(track.id);
-                }
-              }}
-              className={`transition shrink-0 mr-1 p-1 rounded-full ${
-                isVideoMode
-                  ? "text-red-400 bg-red-500/10 border border-red-500/20 shadow-inner animate-pulse hover:scale-105"
-                  : "text-zinc-400 hover:text-red-400"
-              }`}
-              title={isVideoMode ? "Watch Audio Only" : "Watch Video"}
-            >
-              <Tv className="w-5 h-5" />
-            </button>
-          )}
+          {/* TV Video Box Button */}
+          <button
+            onClick={() => {
+              if (activeVideoId) {
+                closeVideo();
+              } else {
+                playVideo(track.id || track.videoId);
+              }
+            }}
+            className={`transition shrink-0 mr-1 p-1.5 rounded-full ${
+              activeVideoId
+                ? "text-red-400 bg-red-500/10 border border-red-500/20 shadow-inner animate-pulse hover:scale-105"
+                : "text-zinc-400 hover:text-white hover:bg-white/5"
+            }`}
+            title={activeVideoId ? "Close Video Box" : "Watch Video (Theater Box)"}
+          >
+            <Tv className="w-5 h-5" />
+          </button>
 
           <button
             onClick={() => setShowFullscreenPlayer(true)}
@@ -357,39 +324,31 @@ export function MiniPlayer() {
           />
         </div>
 
-        {/* Left section: Artwork + Title & Artist */}
+        {/* Left section: Video / Artwork slot + Title & Artist */}
         <div className="flex items-center gap-3 min-w-0 flex-1 mr-4">
-          {isVideoMode && !showFullscreenPlayer && !activeVideoId ? (
-            <div className="w-12 h-8 rounded bg-zinc-950 overflow-hidden shrink-0 border border-white/10 relative">
-              <div
-                id="youtube-player-placeholder"
-                className="w-full h-full bg-transparent"
-              />
-              {/* Overlay inside video placeholder to capture maximize clicks */}
-              <div className="absolute inset-0 z-10" />
-            </div>
-          ) : (
-            <div className="w-10 h-10 rounded-lg bg-zinc-950 overflow-hidden border border-white/10 shrink-0 relative shadow-sm">
-              <img
-                src={coverSrc}
-                alt={track.title}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.onerror = null;
-                  if (
-                    e.currentTarget.src !==
-                      `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg` &&
-                    track.id &&
-                    track.id.length === 11
-                  ) {
-                    e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg`;
-                  } else {
-                    e.currentTarget.src = "/placeholder.png";
-                  }
-                }}
-              />
-            </div>
-          )}
+          <div
+            id="mini-youtube-player-placeholder-mobile"
+            className="w-14 h-10 rounded-lg bg-black overflow-hidden border border-white/10 shrink-0 relative shadow-sm"
+          >
+            <img
+              src={coverSrc}
+              alt={track.title}
+              className="w-full h-full object-cover opacity-80"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                if (
+                  e.currentTarget.src !==
+                    `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg` &&
+                  track.id &&
+                  track.id.length === 11
+                ) {
+                  e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg`;
+                } else {
+                  e.currentTarget.src = "/placeholder.png";
+                }
+              }}
+            />
+          </div>
           <div className="min-w-0 flex-1">
             <h4 className="text-xs font-semibold text-white truncate">
               {track.title}
@@ -400,8 +359,26 @@ export function MiniPlayer() {
           </div>
         </div>
 
-        {/* Right section: Like, Play/Pause, Next */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        {/* Right section: TV Video, Like, Play/Pause, Next */}
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (activeVideoId) {
+                closeVideo();
+              } else {
+                playVideo(track.id || track.videoId);
+              }
+            }}
+            className={`p-2 transition shrink-0 rounded-full ${
+              activeVideoId
+                ? "text-red-400 bg-red-500/10 animate-pulse"
+                : "text-zinc-400 hover:text-white"
+            }`}
+            title={activeVideoId ? "Close Video Box" : "Watch Video (Theater Box)"}
+          >
+            <Tv className="w-4.5 h-4.5" />
+          </button>
           {profile && (
             <button
               onClick={(e) => {

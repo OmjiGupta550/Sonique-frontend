@@ -285,7 +285,7 @@ export default function DiagnosePage() {
             step: "Preferences Table Access",
             status: "success",
             message: "Preferences row found in database!",
-            details: `Accent Color: ${prefs.accent_color}, Theme: ${prefs.theme}`,
+            details: `Accent Color: ${prefs.accent_color}`,
           });
         } else {
           newResults.push({
@@ -297,8 +297,6 @@ export default function DiagnosePage() {
 
           const newPrefs = {
             user_id: currentUser.id,
-            theme: "dark",
-            volume_default: 0.8,
             accent_color: "#8B5CF6",
           };
 

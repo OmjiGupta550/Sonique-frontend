@@ -556,6 +556,8 @@ function HeroSection({ scrollYProgress, router }) {
 }
 
 function FeatureCard({ icon, title, desc, delay, floatDelay }) {
+  const animationDuration = 3 + ((title.length + desc.length) % 20) / 10;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
@@ -568,7 +570,7 @@ function FeatureCard({ icon, title, desc, delay, floatDelay }) {
         animate={{ y: [0, -6, 0] }}
         transition={{
           repeat: Infinity,
-          duration: 3 + Math.random() * 2,
+          duration: animationDuration,
           ease: "easeInOut",
           delay: floatDelay,
         }}
@@ -784,7 +786,7 @@ function WhySoniqueSection() {
 
         <TiltGlassPanel
           title="Smart Experience"
-          desc="Equipped with quick keyboard controls, custom sleep timers, responsive queue drawers, and mobile compatibility, Sonique fits your lifestyle."
+          desc="Equipped with quick keyboard controls, live synced lyrics, responsive queue drawers, and mobile compatibility, Sonique fits your lifestyle."
           badge="Tailored UX"
           glow="rgba(16, 185, 129, 0.18)"
           floatOffset={3}

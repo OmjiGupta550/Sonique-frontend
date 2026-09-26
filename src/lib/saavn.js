@@ -20,12 +20,12 @@ export function getHighResThumbnailUrl(url) {
   return url;
 }
 
-export async function searchSaavnSongs(query, limit = 50) {
+export async function searchSaavnSongs(query, limit = 50, filter = "songs") {
   if (!query) return [];
 
   try {
     const res = await fetch(
-      `${API_ROOT}/api/search?q=${encodeURIComponent(query)}&limit=${limit}`,
+      `${API_ROOT}/api/search?q=${encodeURIComponent(query)}&limit=${limit}&filter=${filter}`,
       {
         signal: AbortSignal.timeout(20000),
       },

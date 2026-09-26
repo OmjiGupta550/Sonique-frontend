@@ -28,9 +28,18 @@ export const usePlayerStore = create((set, get) => {
     lyrics: [],
     isLyricsLoading: false,
     currentLyricIndex: -1,
+    lyricsSynced: false,
+    lyricsProvider: null,
+    lyricsMatchScore: 0,
+    isInstrumental: false,
+    lyricsOffset: 0.0,
+    lyricsTrackId: null,
+    setLyricsOffset: (offset) => set({ lyricsOffset: offset }),
+    adjustLyricsOffset: (delta) =>
+      set((state) => ({
+        lyricsOffset: Math.round((state.lyricsOffset + delta) * 10) / 10,
+      })),
     audio: null,
-    sleepTimer: null,
-    sleepTimerActive: false,
     isVideoMode: false,
     setVideoMode: (enabled) => set({ isVideoMode: enabled }),
 
@@ -54,14 +63,22 @@ export const usePlayerStore = create((set, get) => {
         const curTime = globalAudio.currentTime;
         set({ currentTime: curTime });
 
-        // Update active lyric line index
+        // Update active lyric line index efficiently with lyricsOffset lead/lag tuning
         const lyrics = get().lyrics;
-        if (lyrics.length > 0) {
+        if (lyrics.length > 0 && get().lyricsSynced) {
+          const effectiveTime = curTime + (get().lyricsOffset || 0);
           let activeIndex = -1;
           for (let i = 0; i < lyrics.length; i++) {
-            if (curTime >= lyrics[i].time) {
+            const start = lyrics[i].start !== undefined ? lyrics[i].start : lyrics[i].time;
+            const nextStart =
+              i < lyrics.length - 1
+                ? lyrics[i + 1].start !== undefined
+                  ? lyrics[i + 1].start
+                  : lyrics[i + 1].time
+                : start + 6.0;
+
+            if (effectiveTime >= start && (i === lyrics.length - 1 || effectiveTime < nextStart)) {
               activeIndex = i;
-            } else {
               break;
             }
           }
@@ -109,18 +126,35 @@ export const usePlayerStore = create((set, get) => {
     },
 
     playTrack: (track, fromQueue, isVideo) => {
+      const videoId = track.videoId || track.id;
+      if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
+        console.error("Cannot play track without a valid YouTube video ID", track);
+        return;
+      }
+
       get().initAudio();
       const currentAudio = get().audio;
       if (!currentAudio) return;
 
-      // Check if we are toggling mode for the same track
-      const activeTrack = get().queue[get().currentIndex];
+      // Check if we are toggling mode for the same track. IMPORTANT: compare
+      // against the ACTIVE queue (shuffledQueue when shuffle is on) — comparing
+      // against `queue` while shuffle is enabled reads an arbitrary track and
+      // could leak the currently playing song's position into a different song.
+      const activePlaylist = get().isShuffle
+        ? get().shuffledQueue
+        : get().queue;
+      const activeTrack = activePlaylist[get().currentIndex];
       const isSameTrack =
         activeTrack !== undefined && activeTrack.id === track.id;
-      const preservedTime = isSameTrack ? get().currentTime : 0;
+      // Only an explicit audio/video mode toggle of the SAME track may resume
+      // its position. Every other play (fresh click, re-click of the current
+      // song, next/prev, shuffle) must start from 0:00 — otherwise stale
+      // positions make songs skip their beginning.
+      const isModeToggle = isVideo !== undefined && isSameTrack;
+      const preservedTime = isModeToggle ? get().currentTime : 0;
 
-      const shouldPlayVideo =
-        isVideo !== undefined ? isVideo : track.hasVideo || false;
+      // Default to poster view (isVideoMode: false) until resolve-video confirms a playable video
+      const shouldPlayVideo = isVideo !== undefined ? isVideo : (track.hasVideo === true);
       set({ isVideoMode: shouldPlayVideo });
 
       const isSingleTrackPlay = !fromQueue || fromQueue.length <= 1;
@@ -153,12 +187,16 @@ export const usePlayerStore = create((set, get) => {
         set({ shuffledQueue: shuffled, currentIndex: 0 });
       }
 
-      const streamUrl = `${API_BASE}/stream/${track.id}?redirect=true&has_video=${shouldPlayVideo}&title=${encodeURIComponent(track.title)}&artist=${encodeURIComponent(track.artist)}`;
-      currentAudio.src = streamUrl;
+      const playerUrl = `https://www.youtube.com/watch?v=${videoId}`;
+      currentAudio.src = playerUrl;
       currentAudio.load();
-      if (preservedTime > 0) {
-        currentAudio.currentTime = preservedTime;
-      }
+      // Always pin the start position explicitly: 0 for every fresh/re-play,
+      // or the preserved position only for an explicit audio/video mode
+      // toggle. The wrapper's internal _currentTime keeps syncing from the
+      // live player while a song plays, so without this reset a re-clicked
+      // (or mis-matched) track would resume mid-song via loadVideoById's
+      // startSeconds.
+      currentAudio.currentTime = preservedTime;
       currentAudio
         .play()
         .then(() => {
@@ -189,10 +227,89 @@ export const usePlayerStore = create((set, get) => {
           );
         });
 
+      // Fetch official YT Music album art and swap poster
+      fetch(`${API_BASE}/meta/${track.id}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((meta) => {
+          if (meta && meta.albumArt) {
+            get().updateTrackCover(track.id, meta.albumArt);
+          }
+        })
+        .catch(() => {});
+
+      // Auto-resolve official video for the song (Tier 1: YT Music Official Video, Tier 2: YouTube Official Video fallback)
+      const resolveParams = new URLSearchParams({
+        title: track.title || "",
+        artist: track.artist || "",
+      });
+      fetch(
+        `${API_BASE}/resolve-video/${track.id}?${resolveParams.toString()}`,
+      )
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (!data) return;
+          const st = get();
+          if (st.currentIndex < 0) return;
+          const cur = st.isShuffle
+            ? st.shuffledQueue[st.currentIndex]
+            : st.queue[st.currentIndex];
+          if (!cur || cur.id !== track.id) return; // user already switched tracks
+
+          if (data.hasVideo === true && data.resolvedVideoId) {
+            const resolvedId = data.resolvedVideoId;
+            const upgraded = {
+              ...cur,
+              hasVideo: true,
+              isVideo: true,
+              videoId: resolvedId,
+            };
+            const patchQueue = (arr) =>
+              arr.map((t, i) => (i === st.currentIndex ? upgraded : t));
+            if (st.isShuffle) {
+              set({ shuffledQueue: patchQueue(st.shuffledQueue) });
+            }
+            set({ queue: patchQueue(st.queue), isVideoMode: true });
+
+            // Re-target player to official video if a different video ID was resolved
+            if (resolvedId !== videoId) {
+              const audio = get().audio;
+              if (audio) {
+                // The resolved video must start from 0:00 for a normal play.
+                // Resuming at get().currentTime here used the elapsed time of
+                // the ORIGINAL video — which by now equals the resolver's
+                // network latency — so upgraded songs began mid-way. Only an
+                // explicit audio/video mode toggle keeps its position.
+                const resumeAt = isModeToggle ? get().currentTime : 0;
+                audio.pause();
+                audio.src = `https://www.youtube.com/watch?v=${resolvedId}`;
+                audio.load();
+                audio.currentTime = resumeAt;
+                audio
+                  .play()
+                  .then(() => set({ isPlaying: true }))
+                  .catch(() => set({ isPlaying: false }));
+              }
+            }
+          } else {
+            // No curated video found: fallback to adaptive poster thumbnail mode
+            const patched = {
+              ...cur,
+              hasVideo: false,
+              isVideo: false,
+            };
+            const patchQueue = (arr) =>
+              arr.map((t, i) => (i === st.currentIndex ? patched : t));
+            if (st.isShuffle) {
+              set({ shuffledQueue: patchQueue(st.shuffledQueue) });
+            }
+            set({ queue: patchQueue(st.queue), isVideoMode: false });
+          }
+        })
+        .catch(() => {});
+
       // Automatically create a vibe list of at least 50 matching vibe tracks in the background
       const modeChanged = get().isVideoMode !== isVideo;
       if ((!isSameTrack || modeChanged) && isSingleTrackPlay) {
-        const isVideoOnly = isVideo || get().isVideoMode;
         fetch(
           `${API_BASE}/vibe/${track.id}?title=${encodeURIComponent(track.title)}&artist=${encodeURIComponent(track.artist)}`,
         )
@@ -214,28 +331,23 @@ export const usePlayerStore = create((set, get) => {
                   track,
                   ...vibeTracks.filter((t) => t.id !== track.id),
                 ];
-                // Force hasVideo to match the current mode for visual UI consistency in the queue drawer
-                const mappedQueue = combinedQueue.map((t) => ({
-                  ...t,
-                  hasVideo: isVideoOnly ? true : t.hasVideo,
-                }));
+                // Keep each track's own backend-stamped hasVideo flag so the
+                // queue drawer & fullscreen card show video <iframe> only for
+                // suggestions that actually have a video, and the poster <img>
+                // for audio-only art tracks.
 
                 if (latestStore.isShuffle) {
                   const shuffledVibe = [
                     ...vibeTracks.filter((t) => t.id !== track.id),
                   ].sort(() => Math.random() - 0.5);
-                  const mappedShuffled = [track, ...shuffledVibe].map((t) => ({
-                    ...t,
-                    hasVideo: isVideoOnly ? true : t.hasVideo,
-                  }));
                   set({
-                    queue: mappedQueue,
-                    shuffledQueue: mappedShuffled,
+                    queue: combinedQueue,
+                    shuffledQueue: [track, ...shuffledVibe],
                     currentIndex: 0,
                   });
                 } else {
                   set({
-                    queue: mappedQueue,
+                    queue: combinedQueue,
                     currentIndex: 0,
                   });
                 }
@@ -301,11 +413,9 @@ export const usePlayerStore = create((set, get) => {
         }
       }
 
-      get().playTrack(
-        currentPlaylist[nextIndex],
-        currentPlaylist,
-        get().isVideoMode,
-      );
+      // Let each next track decide its own display mode from its flags
+      // (poster <img> for audio-only, video iframe for hasVideo tracks).
+      get().playTrack(currentPlaylist[nextIndex], currentPlaylist);
     },
 
     previous: () => {
@@ -348,11 +458,8 @@ export const usePlayerStore = create((set, get) => {
         prevIndex = currentPlaylist.length - 1;
       }
 
-      get().playTrack(
-        currentPlaylist[prevIndex],
-        currentPlaylist,
-        get().isVideoMode,
-      );
+      // Let each previous track decide its own display mode from its flags.
+      get().playTrack(currentPlaylist[prevIndex], currentPlaylist);
     },
 
     seek: (time) => {
@@ -487,6 +594,7 @@ export const usePlayerStore = create((set, get) => {
         duration: 0,
         lyrics: [],
         currentLyricIndex: -1,
+        lyricsTrackId: null,
       });
     },
 
@@ -512,100 +620,90 @@ export const usePlayerStore = create((set, get) => {
     setShowFullscreenPlayer: (show) => set({ showFullscreenPlayer: show }),
     setShowQueueList: (show) => set({ showQueueList: show }),
 
+    // Swap in the official YT Music album art once metadata arrives
+    updateTrackCover: (trackId, albumArt) => {
+      if (!trackId || !albumArt) return;
+      const { queue, shuffledQueue } = get();
+      const patch = (t) => (t.id === trackId ? { ...t, coverUrl: albumArt } : t);
+      set({ queue: queue.map(patch), shuffledQueue: shuffledQueue.map(patch) });
+    },
+
     fetchLyricsForCurrent: async () => {
       const { queue, shuffledQueue, isShuffle, currentIndex } = get();
       const currentPlaylist = isShuffle ? shuffledQueue : queue;
       const track = currentPlaylist[currentIndex];
 
       if (!track) return;
+      const trackId = track.id || track.videoId;
 
-      set({ isLyricsLoading: true, lyrics: [], currentLyricIndex: -1 });
+      set({
+        isLyricsLoading: true,
+        lyrics: [],
+        currentLyricIndex: -1,
+        lyricsSynced: false,
+        lyricsProvider: null,
+        lyricsMatchScore: 0,
+        isInstrumental: false,
+        lyricsTrackId: trackId,
+      });
 
       try {
-        // 1. Try to fetch synced lyrics from LRCLIB first
-        const lrclibData = await fetchLyrics(
-          track.title,
-          track.artist,
-          track.duration,
-        );
-        if (
-          lrclibData &&
-          (lrclibData.syncedLyrics || lrclibData.isInstrumental)
-        ) {
-          set({ lyrics: lrclibData.parsedLines, isLyricsLoading: false });
-          return;
-        }
+        const queryParams = new URLSearchParams({
+          title: track.title || "",
+          artist: track.artist || "",
+          album: track.album || "",
+          duration: track.duration || 0,
+          videoId: trackId || "",
+        });
 
-        // 2. Fall back to JioSaavn plain text lyrics if no synced lyrics found
-        let jioSaavnLyrics = null;
-        const shouldPlayVideo = get().isVideoMode;
-        if (!shouldPlayVideo) {
-          try {
-            const res = await fetch(
-              `${API_BASE}/api/lyrics?videoId=${track.id}&title=${encodeURIComponent(track.title)}&artist=${encodeURIComponent(track.artist)}&has_video=false`,
-            );
-            if (res.ok) {
-              const data = await res.json();
-              if (data.lyrics) {
-                const lines = data.lyrics.split("\n");
-                jioSaavnLyrics = lines
-                  .map((line, index) => ({
-                    time: index * 4,
-                    text: line.trim(),
-                  }))
-                  .filter((l) => l.text.length > 0);
-              }
-            }
-          } catch (err) {
-            console.error("Failed to fetch JioSaavn lyrics:", err);
+        const res = await fetch(`${API_BASE}/lyrics?${queryParams.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          // Check if user switched to another song during fetch
+          const activeTrack = (get().isShuffle ? get().shuffledQueue : get().queue)[get().currentIndex];
+          if ((activeTrack?.id || activeTrack?.videoId) !== trackId) return;
+
+          if (data.success && Array.isArray(data.lines) && data.lines.length > 0) {
+            const mappedLines = data.lines.map((l) => ({
+              start: l.start,
+              end: l.end,
+              time: l.start,
+              text: l.text,
+            }));
+            set({
+              lyrics: mappedLines,
+              lyricsSynced: data.synced || false,
+              lyricsProvider: data.provider || null,
+              lyricsMatchScore: data.matchScore || 0,
+              isInstrumental: data.isInstrumental || false,
+              lyricsOffset: 0.0,
+              isLyricsLoading: false,
+              lyricsTrackId: trackId,
+            });
+            return;
           }
         }
 
-        if (jioSaavnLyrics && jioSaavnLyrics.length > 0) {
-          set({ lyrics: jioSaavnLyrics, isLyricsLoading: false });
-        } else if (
-          lrclibData &&
-          lrclibData.parsedLines &&
-          lrclibData.parsedLines.length > 0
-        ) {
-          set({ lyrics: lrclibData.parsedLines, isLyricsLoading: false });
-        } else {
-          set({
-            lyrics: [{ time: 0, text: "Lyrics not available" }],
-            isLyricsLoading: false,
-          });
-        }
-      } catch (err) {
-        console.error(err);
         set({
-          lyrics: [{ time: 0, text: "Failed to load lyrics" }],
+          lyrics: [],
+          lyricsSynced: false,
+          lyricsProvider: null,
+          lyricsMatchScore: 0,
+          isInstrumental: false,
           isLyricsLoading: false,
+          lyricsTrackId: trackId,
         });
-      }
-    },
-
-    setSleepTimer: (minutes) => {
-      set({
-        sleepTimer: minutes,
-        sleepTimerActive: minutes !== null,
-      });
-    },
-
-    decrementSleepTimer: () => {
-      const { sleepTimer, sleepTimerActive, isPlaying, audio } = get();
-      if (!sleepTimerActive || sleepTimer === null) return;
-
-      if (sleepTimer <= 1) {
-        // Timer finished! Pause audio
-        if (audio && isPlaying) {
-          audio.pause();
-        }
+      } catch (err) {
+        console.error("Failed to fetch lyrics:", err);
         set({
-          sleepTimer: null,
-          sleepTimerActive: false,
+          lyrics: [],
+          lyricsSynced: false,
+          lyricsProvider: null,
+          lyricsMatchScore: 0,
+          isInstrumental: false,
+          isLyricsLoading: false,
+          lyricsTrackId: trackId,
         });
-      } else {
-        set({ sleepTimer: sleepTimer - 1 });
       }
     },
   };

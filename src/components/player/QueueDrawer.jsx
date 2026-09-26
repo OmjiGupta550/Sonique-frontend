@@ -6,6 +6,8 @@ import { useUIStore } from "../../store/useUIStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Trash2, Sparkles, Music } from "lucide-react";
 
+import { useAIStore } from "../../store/useAIStore";
+
 export function QueueDrawer() {
   const {
     queue,
@@ -18,11 +20,17 @@ export function QueueDrawer() {
     playTrack,
     clearQueue,
     togglePlay,
-    isVideoMode,
     showFullscreenPlayer,
   } = usePlayerStore();
 
   const { accentColor, activeVideoId } = useUIStore();
+  const { setIsOpen: setIsAIOpen } = useAIStore();
+
+  React.useEffect(() => {
+    if (showQueueList) {
+      setIsAIOpen(false);
+    }
+  }, [showQueueList, setIsAIOpen]);
 
   const activeQueue = isShuffle ? shuffledQueue : queue;
   const currentTrack = activeQueue[currentIndex];
@@ -31,8 +39,9 @@ export function QueueDrawer() {
     return null;
 
   const handleTrackClick = (track, idx) => {
-    // Jump to the clicked track in the current queue list, preserving video mode context
-    playTrack(track, activeQueue, isVideoMode);
+    // Jump to the clicked track — each track decides its own display mode from
+    // its flags (poster <img> for audio-only, video iframe for hasVideo tracks).
+    playTrack(track, activeQueue);
   };
 
   return (
@@ -133,24 +142,14 @@ export function QueueDrawer() {
                       track.coverUrl !== "null" &&
                       track.coverUrl !== "undefined"
                         ? track.coverUrl
-                        : track.id && track.id.length === 11
-                          ? `https://i.ytimg.com/vi/${track.id}/maxresdefault.jpg`
-                          : "/placeholder.png"
+                        : "/placeholder.png"
                     }
                     alt=""
                     className="w-full h-full object-cover"
                     onError={(e) => {
+                      // Never fall back to video frames for music-only tracks
                       e.currentTarget.onerror = null;
-                      if (
-                        e.currentTarget.src !==
-                          `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg` &&
-                        track.id &&
-                        track.id.length === 11
-                      ) {
-                        e.currentTarget.src = `https://i.ytimg.com/vi/${track.id}/hqdefault.jpg`;
-                      } else {
-                        e.currentTarget.src = "/placeholder.png";
-                      }
+                      e.currentTarget.src = "/placeholder.png";
                     }}
                   />
                 </div>

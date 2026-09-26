@@ -3,8 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Search, Library, Plus, Disc, Heart, Moon } from "lucide-react";
+import { Home, Search, Library, Plus, Disc, Heart, BrainCircuit } from "lucide-react";
 import { useUIStore } from "../../store/useUIStore";
+import { useAIStore } from "../../store/useAIStore";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -12,9 +13,9 @@ export function Sidebar() {
     playlists,
     profile,
     setShowCreatePlaylistModal,
-    setShowSleepTimerModal,
     accentColor,
   } = useUIStore();
+  const { setIsOpen: setIsAIOpen } = useAIStore();
 
   const navItems = [
     { label: "Home", href: "/app", icon: Home },
@@ -61,6 +62,17 @@ export function Sidebar() {
             </Link>
           );
         })}
+
+        {/* Ask Sonique AI Navigation Button */}
+        <button
+          onClick={() => setIsAIOpen(true)}
+          className="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-indigo-300 hover:text-white hover:bg-indigo-500/10 border border-indigo-500/20 mt-1 group"
+        >
+          <div className="w-6 h-6 rounded-md bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
+            <BrainCircuit className="w-4 h-4 text-indigo-100 animate-pulse" />
+          </div>
+          <span>Ask Sonique AI</span>
+        </button>
       </nav>
 
       {/* Playlists & Actions Header */}
@@ -108,7 +120,7 @@ export function Sidebar() {
 
         {playlists.length === 0 && profile && (
           <div className="px-3 py-4 text-xs text-zinc-500 italic text-center">
-            No custom playlists. Click '+' to create.
+            No custom playlists. Click &apos;+&apos; to create.
           </div>
         )}
 
@@ -117,17 +129,6 @@ export function Sidebar() {
             Log in to manage playlists
           </div>
         )}
-      </div>
-
-      {/* Footer / Sleep Timer */}
-      <div className="border-t border-white/5 pt-4 mt-auto">
-        <button
-          onClick={() => setShowSleepTimerModal(true)}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-zinc-400 hover:text-white hover:bg-white/5 transition duration-200"
-        >
-          <Moon className="w-5 h-5 text-indigo-400" />
-          <span>Sleep Timer</span>
-        </button>
       </div>
     </aside>
   );

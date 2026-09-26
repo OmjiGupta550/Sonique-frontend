@@ -3,6 +3,17 @@
 :root {
   --background: #09090b; /* Zinc 950 default */
   --foreground: #f4f4f5; /* Zinc 100 default */
+  --card-bg: #18181b;
+  --header-bg: rgba(9, 9, 11, 0.8);
+  --border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"], .light {
+  --background: #f8fafc; /* Slate 50 */
+  --foreground: #0f172a; /* Slate 900 */
+  --card-bg: #ffffff;
+  --header-bg: rgba(255, 255, 255, 0.85);
+  --border-color: rgba(0, 0, 0, 0.08);
 }
 
 @theme inline {
@@ -17,6 +28,111 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Light Theme Overrides */
+[data-theme="light"] body,
+.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] aside,
+.light aside {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-right-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] header,
+.light header {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .bg-zinc-950,
+[data-theme="light"] .bg-zinc-950\/60,
+[data-theme="light"] .bg-zinc-950\/90,
+[data-theme="light"] .bg-zinc-950\/95,
+[data-theme="light"] .bg-zinc-950\/20,
+.light .bg-zinc-950,
+.light .bg-zinc-950\/60,
+.light .bg-zinc-950\/90,
+.light .bg-zinc-950\/95,
+.light .bg-zinc-950\/20 {
+  background-color: #f8fafc !important;
+}
+
+[data-theme="light"] .bg-zinc-900,
+[data-theme="light"] .bg-zinc-900\/40,
+[data-theme="light"] .bg-zinc-900\/60,
+[data-theme="light"] .bg-zinc-900\/80,
+[data-theme="light"] .bg-zinc-900\/90,
+.light .bg-zinc-900,
+.light .bg-zinc-900\/40,
+.light .bg-zinc-900\/60,
+.light .bg-zinc-900\/80,
+.light .bg-zinc-900\/90 {
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+[data-theme="light"] .bg-zinc-850,
+[data-theme="light"] .bg-zinc-800,
+.light .bg-zinc-850,
+.light .bg-zinc-800 {
+  background-color: #f1f5f9 !important;
+}
+
+[data-theme="light"] .text-white,
+.light .text-white {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .text-zinc-100,
+[data-theme="light"] .text-zinc-200,
+[data-theme="light"] .text-zinc-300,
+.light .text-zinc-100,
+.light .text-zinc-200,
+.light .text-zinc-300 {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .text-zinc-400,
+[data-theme="light"] .text-zinc-500,
+.light .text-zinc-400,
+.light .text-zinc-500 {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .border-white\/5,
+[data-theme="light"] .border-white\/10,
+[data-theme="light"] .border-white\/20,
+.light .border-white\/5,
+.light .border-white\/10,
+.light .border-white\/20 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] input[type="text"],
+[data-theme="light"] input[type="search"],
+.light input[type="text"],
+.light input[type="search"] {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] input::placeholder,
+.light input::placeholder {
+  color: #94a3b8 !important;
+}
+
+[data-theme="light"] .hover\:bg-white\/5:hover,
+[data-theme="light"] .hover\:bg-white\/10:hover,
+.light .hover\:bg-white\/5:hover,
+.light .hover\:bg-white\/10:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
 }
 
 /* Custom Scrollbar Utilities */
@@ -50,13 +166,13 @@ body {
 }
 
 .queue-scrollbar::-webkit-scrollbar-thumb {
-  background: #3f3f46 !important; /* solid zinc-700 for high visibility */
+  background: #3f3f46 !important;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .queue-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #71717a !important; /* solid zinc-500 on hover */
+  background: #71717a !important;
 }
 
 .queue-scrollbar {
@@ -135,12 +251,24 @@ input[type="range"]::-moz-range-track {
 }
 
 /* Global YouTube positioned player iframe styles */
-#hidden-youtube-player-container,
-#hidden-youtube-player-container iframe {
-  background: transparent !important;
-  background-color: transparent !important;
+#hidden-youtube-player-container {
+  overflow: hidden !important;
+  background: #000000 !important;
+  background-color: #000000 !important;
+}
+
+.fullscreen-youtube-player-placeholder {
+  border-radius: 1rem !important;
+  overflow: hidden !important;
 }
 
 #hidden-youtube-player-container iframe {
   border: none !important;
+  width: 100% !important;
+  height: 100% !important;
+  top: 0 !important;
+  left: 0 !important;
+  position: absolute !important;
+  object-fit: cover !important;
+  pointer-events: none !important;
 }

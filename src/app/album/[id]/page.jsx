@@ -48,6 +48,9 @@ export default function AlbumPage() {
       coverUrl: t.coverUrl,
       duration: t.duration,
       sourceUrl: t.sourceUrl,
+      itemType: t.itemType,
+      hasVideo: t.hasVideo,
+      isVideo: t.isVideo,
     }));
     playPlaylist(playerTracks, 0);
   };
@@ -129,6 +132,9 @@ export default function AlbumPage() {
                 coverUrl: track.coverUrl,
                 duration: track.duration,
                 sourceUrl: track.sourceUrl,
+                itemType: track.itemType,
+                hasVideo: track.hasVideo,
+                isVideo: track.isVideo,
               }}
               index={idx}
             />
